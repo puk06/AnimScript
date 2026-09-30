@@ -58,7 +58,11 @@ namespace net.puk06.AnimScript
             }
             catch (Exception exception)
             {
-                diagnostics.Error(new SourceLocation(1, 1), $"生成中に予期しないエラーが発生しました: {exception.Message}");
+                // 予期しない例外はツール側のバグの可能性が高いので、
+                // スタックトレース付きでコンソールに残す（報告してもらえると助かる）
+                Debug.LogException(exception);
+                diagnostics.Error(new SourceLocation(1, 1),
+                    $"生成中に予期しないエラーが発生しました: {exception.GetType().Name}: {exception.Message}\n（詳細は Unity コンソールを確認してください）");
                 return BuildResult.Failure(diagnostics);
             }
 

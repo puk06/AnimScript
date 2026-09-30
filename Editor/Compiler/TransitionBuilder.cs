@@ -62,9 +62,12 @@ namespace net.puk06.AnimScript
 
             foreach (var condition in term)
             {
+                // If / IfNot（bool 単体の条件）には比較する値が無いので 0 を渡す
+                // （Unity 側でも If / IfNot の threshold は使われない）
+                var threshold = condition.Value == null ? 0f : (float)condition.Value.Const();
                 transition.AddCondition(
                     ConditionBuilder.ToMode(condition.Op),
-                    (float)condition.Value.Const(),
+                    threshold,
                     condition.Param);
             }
         }
