@@ -287,24 +287,60 @@ for i in 0..3 {
 - ブレンドツリー・サブステートマシンは未対応です
 - `loop on/off` はクリップのアセット自体を変更します（他の Animator とも共有される点に注意）
 
-# ファイル構成（開発者向け）
+# コントローラから animscript へ逆変換（インポート）
+
+**Tools > ぷこのつーる > AnimScript Builder** の「コントローラからインポート」、または **Project ウィンドウで AnimatorController を右クリック → AnimScript/animscript に変換** から使えます。
 
 ```
-AnimatorBuildor/
+AnimatorController (.controller)
+        │
+        ▼
+   .animscript （テキスト）
+```
+
+- 既存コントローラを編集しやすいテキストに戻せます
+- コントローラと同じフォルダに `<コントローラ名>.animscript` が作成されます
+- **再ビルドすれば元のコントローラに戻ります**
+
+## インポート時の注意
+
+- **for / while ループは復元されません**。展開された状態のまま `.animscript` に書き出されます
+- **BlendTree** は未対応のため、空ステートとして書き出されます
+- **サブステートマシン** は未対応のため、警告が出てスキップされます
+- **Trigger 型パラメータ** は bool として書き出されます
+- **遷移時間が割合（%）指定**のものは秒指定に変換されません（警告が出ます）
+- Unity 側でスペースや記号を含む名前が使われている場合、animscript の識別子として使える形に変換されます（`A B` → `A_B` など）
+
+---
+
+# ファイル構成（開発者向け）
+
+詳しい内部構造は **ARCHITECTURE.md** を参照してください。
+
+```
+Packages/net.puk06.animscript/
 ├── Editor/
-│   ├── AnimScriptBuilderWindow.cs   … ウィンドウUI
-│   ├── SyntaxCheatSheet.cs        … ウィンドウ内チートシート
-│   ├── Language/                  … 言語フロントエンド（Unity 非依存）
-│   │   ├── Lexer.cs               … 字句解析
-│   │   ├── Parser.cs              … 構文解析
-│   │   └── Ast/                   … AST ノード
-│   ├── Compiler/
-│   │   ├── AstExpander.cs         … for/while/var の展開
-│   │   ├── ScriptValidator.cs     … 意味チェック
-│   │   ├── AnimatorCompiler.cs    … 生成の統括
-│   │   └── （各種 Builder）       … State/Transition/Driver など
-│   └── Util/AnimScriptPaths.cs    … 出力パス周り
-└── Samples/                       … 実例サンプル（01〜04）
+│   ├── AnimScriptBuilderWindow.cs   … ウィンドウ UI
+│   ├── SyntaxCheatSheet.cs          … ウィンドウ内チートシート
+│   ├── Importer/                    … コントローラ → animscript 逆変換
+│   │   ├── ControllerImporter.cs
+│   │   ├── DriverExporter.cs
+│   │   ├── NameSanitizer.cs
+│   │   ├── ScriptTextWriter.cs
+│   │   └── ImportMenuItem.cs
+│   ├── Language/                    … 言語フロントエンド（Unity 非依存）
+│   │   ├── Lexer.cs                 … 字句解析
+│   │   ├── Parser.cs                … 構文解析
+│   │   └── Ast/                     … AST ノード
+│   ├── Compiler/                    … コンパイル・生成
+│   │   ├── AstExpander.cs           … for/while/var の展開
+│   │   ├── ScriptValidator.cs       … 意味チェック
+│   │   ├── AnimatorCompiler.cs      … 生成の統括
+│   │   └── Builder/                 … State/Transition/Driver 等
+│   └── Util/
+│       ├── AnimScriptPaths.cs       … 出力パス周り
+│       └── GuiHelper.cs             … ウィンドウ用の小物
+└── Samples/                         … 実例サンプル（01〜04）
 ```
 
 処理の流れ：**Lexer → Parser → AstExpander → ScriptValidator → ClipResolver → 生成** の順です。

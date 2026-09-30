@@ -24,6 +24,10 @@ namespace net.puk06.AnimScript
         BuildResult _lastResult;
         Vector2 _scroll;
         bool _showCheatSheet;
+        bool _showImport;
+
+        AnimatorController _importSource;
+        string _importResultMessage;
 
         void OnGUI()
         {
@@ -45,6 +49,9 @@ namespace net.puk06.AnimScript
 
                 EditorGUILayout.Space();
                 DrawResult();
+
+                EditorGUILayout.Space();
+                DrawImportSection();
 
                 EditorGUILayout.Space();
                 DrawCheatSheet();
@@ -195,6 +202,65 @@ namespace net.puk06.AnimScript
                 var where = diagnostic.Location.Line > 0 ? $"{diagnostic.Location.Line}行目: " : "";
                 EditorGUILayout.HelpBox(where + diagnostic.Message, type);
             }
+        }
+
+        // ================================================================
+        // コントローラから animscript へ逆変換（インポート）
+        // ================================================================
+
+        void DrawImportSection()
+        {
+            _showImport = EditorGUILayout.Foldout(_showImport, "コントローラからインポート", true);
+            if (!_showImport) return;
+
+            EditorGUILayout.LabelField(
+                "既存の AnimatorController を .animscript に変換します。\n" +
+                "特殊な構造（BlendTree 等）はコメントや警告で明示されます。",
+                EditorStyles.wordWrappedMiniLabel);
+
+            _importSource = EditorGUILayout.ObjectField(
+                "コントローラ", _importSource, typeof(AnimatorController), false) as AnimatorController;
+
+            using (new EditorGUI.DisabledScope(_importSource == null))
+            {
+                if (GUILayout.Button("animscript に変換", GUILayout.Height(32)))
+                    ImportController();
+            }
+
+            if (!string.IsNullOrEmpty(_importResultMessage))
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox(_importResultMessage, MessageType.Info);
+
+                if (GUILayout.Button("生成されたスクリプトを選択"))
+                {
+                    var script = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(_lastImportScriptPath);
+                    if (script != null)
+                    {
+                        Selection.activeObject = script;
+                        EditorGUIUtility.PingObject(script);
+                    }
+                }
+            }
+        }
+
+        string _lastImportScriptPath;
+
+        void ImportController()
+        {
+            var warnings = new System.Collections.Generic.List<string>();
+            _lastImportScriptPath = ControllerImporter.ConvertAndSave(_importSource, warnings);
+
+            if (warnings.Count > 0)
+            {
+                Debug.LogWarning($"[AnimScriptBuilder] 「{_importSource.name}」の変換で {warnings.Count} 件の警告がありました:\n" +
+                                 string.Join("\n", warnings));
+            }
+
+            _importResultMessage = $"{_lastImportScriptPath} に変換しました。\n" +
+                                   $"警告 {warnings.Count} 件（詳細は Console を確認）";
+
+            ShowNotification(new GUIContent("変換しました"));
         }
 
         // ================================================================
