@@ -1,0 +1,38 @@
+// ============================================================
+// 04_WhileLoop.animscript
+// while ループとビルド時変数のサンプル
+//
+// 【ルール】
+//   var count = 4    … ビルド時変数の宣言（参照は $count）
+//   i = $i + 1       … 代入（計算式も書ける: + - * / % と ()）
+//   while $i < $count { ... }
+//                     … 条件が成り立つ間、中身をくり返し展開
+//
+// 【注意】
+//   ・while には暴走防止の上限（512回）があります
+//   ・カウンタの更新（i = $i + 1）を忘れると上限エラーになります
+//   ・while の条件では >= / <= も使えます（遷移条件と違って
+//     自分たちで評価するため）
+// ============================================================
+
+param MenuIndex : int = 0
+
+// いくつ作るかを変数で管理（あとから増やすときここを変えるだけ）
+var count = 4
+
+layer "Menu" default wd off {
+
+    state Idle
+
+    var i = 0
+    while $i < $count {
+        state Item$i = "Menu/Item$i.anim"
+
+        Idle   -> Item$i when MenuIndex == $i dur 0.1
+        Item$i -> Idle   when MenuIndex != $i dur 0.1
+
+        i = $i + 1
+    }
+
+    entry -> Idle
+}

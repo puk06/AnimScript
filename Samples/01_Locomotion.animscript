@@ -1,0 +1,56 @@
+// ============================================================
+// 01_Locomotion.animscript
+// 移動レイヤーの基本サンプル
+//
+// 【ビルド方法】
+//   Tools > ぷこのツール > Animator Builder を開いて
+//   このファイルをドロップ → 「ビルド」
+//   → このフォルダの build/01_Locomotion.controller が生成されます
+//
+// 【クリップ参照について】
+//   "Animations/Idle.anim" … このファイルからの相対パス
+//   "Assets/Anims/Idle.anim" … Assets からのフルパス
+//   "Idle" … プロジェクト内をクリップ名で検索
+//   ※ このサンプルのクリップは存在しないので、実際にビルドするには
+//     ご自分の .anim のパスに書き換えてください
+// ============================================================
+
+// --- パラメータ宣言（Animator Controller の Parameters に追加される） ---
+param Speed    : float = 0
+param Grounded : bool  = true
+param Jump     : bool  = false
+
+// --- レイヤー ---
+// default … コントローラの先頭レイヤーにする
+// wd on   … レイヤー内ステートの Write Defaults を on にする（既定値）
+layer "Locomotion" default wd on {
+
+    // --- ステート（1行書き） ---
+    state Idle = "Animations/Idle.anim"
+    state Walk = "Animations/Walk.anim"
+    state Run  = "Animations/Run.anim" speed 1.1
+    state JumpUp = "Animations/Jump.anim"
+
+    // --- 開始地点（デフォルトステート） ---
+    entry -> Idle
+
+    // --- 分岐 ---
+    // when の後に条件。and で複数つなげられる。
+    // dur は遷移時間（秒）。
+    Idle -> Walk when Speed > 0.1 dur 0.2
+    Walk -> Run  when Speed > 0.5 dur 0.2
+    Run  -> Walk when Speed < 0.5 dur 0.15
+    Walk -> Idle when Speed < 0.1 and Grounded dur 0.2
+
+    // --- どこからでも（AnyState）---
+    any -> JumpUp when Jump dur 0.1
+
+    // --- Exit へ抜ける ---
+    // exitTime 0.9 … クリップを90%再生したら遷移
+    JumpUp -> Idle exitTime 0.9 dur 0.1
+
+    // --- ループ（チェインで環に戻す書き方） ---
+    // A -> B -> C -> A と書くと、A→B→C→A の遷移が一気に作られます。
+    // （このサンプルでは上の遷移と被るのでコメントアウト）
+    // Idle -> Walk -> Run -> Idle exitTime 0.95 dur 0.1
+}

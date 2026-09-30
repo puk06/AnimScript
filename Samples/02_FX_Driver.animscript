@@ -1,0 +1,56 @@
+// ============================================================
+// 02_FX_Driver.animscript
+// FXレイヤー風サンプル：空ステート・WriteDefaults・Parameter Driver
+//
+// VRChat の FX レイヤーでよく使うパターンを詰め込んでいます。
+// driver ブロックは VRC Avatar Parameter Driver として
+// ステートにアタッチされます（VRC SDK3 環境でのみ有効）。
+// ============================================================
+
+// --- パラメータ宣言 ---
+// ※ GestureLeft のような VRChat 標準パラメータも、
+//    条件に使う場合はここで宣言する必要があります
+param GestureLeft : int  = 0
+param MyToggle    : bool = false
+param MyFloat     : float = 0
+param MyRandom    : int  = 0
+
+// --- FX レイヤー ---
+// VRChat の慣習で Write Defaults は off にすることが多いです
+layer "FX" default wd off {
+
+    // 空ステート（motion 無し）。FXレイヤーの待機所。
+    state Idle
+
+    // ブロック書きのステート + Parameter Driver
+    state PeacePose {
+        clip "Animations/Face_Peace.anim"
+        loop on                 // このクリップの Loop Time を on にする
+                                // （クリップのアセット自体が変更されます）
+
+        // このステートに入ったとき、パラメータを書き換える
+        driver {
+            set    MyToggle true        // bool には true/false も書けます（1/0 と同じ）
+            add    MyFloat 0.5
+        }
+    }
+
+    // localOnly 付き driver の例（Add/Random をローカルだけで動かす）
+    state RandomPose {
+        clip "Animations/Face_Random.anim"
+
+        driver localOnly {
+            random MyRandom 0 10        // 0〜10 のランダム値をセット
+            copy   MyFloat -> MyToggle  // パラメータのコピー
+        }
+    }
+
+    entry -> Idle
+
+    // ジェスチャーに応じて分岐
+    Idle      -> PeacePose  when GestureLeft == 2
+    PeacePose -> Idle       when GestureLeft != 2 dur 0.1
+
+    Idle       -> RandomPose when GestureLeft == 3
+    RandomPose -> exit exitTime 0.95 dur 0.1
+}

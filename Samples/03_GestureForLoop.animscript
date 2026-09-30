@@ -1,0 +1,31 @@
+// ============================================================
+// 03_GestureForLoop.animscript
+// for ループでジェスチャー分岐をまとめて生成するサンプル
+//
+// VRChat の FX レイヤーで「ジェスチャー 0〜7 に対応する
+// ポーズを8個並べる」ような場面で、手書きなら8回分必要な
+// state と遷移を、ループ1つで書けます。
+//
+// 【ルール】
+//   for i in 0..7 { ... }  … i が 0〜7（両端含む）で中身を展開
+//   $i                      … ループ変数の参照（名前・パス・条件値に使える）
+//   step 2                  … 刻み幅を変えたいとき
+// ============================================================
+
+param GestureLeft : int = 0
+
+layer "GestureLeft" default wd off {
+
+    state Idle
+
+    // ポーズ8個分のステートと遷移を一括生成
+    // （state Pose0 〜 Pose7、Idle -> PoseN と PoseN -> Idle の遷移ができる）
+    for i in 0..7 {
+        state Pose$i = "Gestures/Left_$i.anim"
+
+        Idle   -> Pose$i when GestureLeft == $i dur 0.1
+        Pose$i -> Idle   when GestureLeft != $i dur 0.1
+    }
+
+    entry -> Idle
+}

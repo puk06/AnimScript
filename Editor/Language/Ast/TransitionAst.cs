@@ -1,0 +1,28 @@
+using System.Collections.Generic;
+
+namespace net.puk06.AnimScript
+{
+    /// <summary>
+    /// 遷移定義。`A -> B -> C when X dur 0.2` のような1行。
+    ///
+    /// Chain はノード名の並び（"entry" / "exit" / "any" / ステート名。$変数を含むことがある）。
+    /// Chain.Count >= 2 が Parser により保証される。
+    /// 先頭と末尾が同じステートなら「ループ」（環状の遷移）になる。
+    /// </summary>
+    internal sealed class TransitionAst : IBlockItem
+    {
+        public List<string> Chain { get; } = new List<string>();
+        public List<ConditionAst> Conditions { get; } = new List<ConditionAst>();
+
+        /// <summary>exitTime 指定。null なら hasExitTime = false。</summary>
+        public ExprAst ExitTime { get; set; }
+
+        /// <summary>dur 指定（遷移時間・秒）。</summary>
+        public ExprAst Duration { get; set; }
+
+        /// <summary>any からの遷移で自分自身への遷移も許可するか。</summary>
+        public bool AllowSelf { get; set; }
+
+        public SourceLocation Location { get; set; }
+    }
+}
