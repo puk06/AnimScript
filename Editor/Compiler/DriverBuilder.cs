@@ -1,5 +1,5 @@
-using UnityEditor;
-using UnityEditor.Animations;
+using nadena.dev.ndmf.animator;
+using UnityEngine;
 #if VRC_SDK_VRCSDK3
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
@@ -15,15 +15,18 @@ namespace net.puk06.AnimScript
     /// </summary>
     internal static class DriverBuilder
     {
-        public static void Build(AnimatorState state, DriverBlockAst block, DiagnosticBag diagnostics)
+        public static void Build(VirtualState state, DriverBlockAst block, DiagnosticBag diagnostics)
         {
 #if VRC_SDK_VRCSDK3
-            var driver = state.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+            var driver = ScriptableObject.CreateInstance<VRCAvatarParameterDriver>();
+            driver.name = "VRCAvatarParameterDriver";
             driver.localOnly = block.LocalOnly;
             driver.debugString = $"AnimScriptBuilder: {block.Actions.Count} action(s)";
 
             foreach (var action in block.Actions)
                 driver.parameters.Add(BuildParameter(action));
+
+            state.Behaviours = state.Behaviours.Add(driver);
 #else
             diagnostics.Warning(block.Location,
                 "VRC SDK (Avatar 3.0) が見つからないため、driver ブロックはスキップされました");

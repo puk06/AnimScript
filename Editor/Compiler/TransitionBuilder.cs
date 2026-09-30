@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 
 namespace net.puk06.AnimScript
 {
     /// <summary>
-    /// TransitionAst の1区間（チェーンの1つ分）→ AnimatorStateTransition の生成。
+    /// TransitionAst の1区間（チェーンの1つ分）→ VirtualStateTransition の生成。
     ///
     /// 条件式に or が含まれる場合は DNF（AND のかたまりの OR）に展開され、
     /// かたまり1つにつき1本の遷移が作られる。
@@ -14,32 +16,35 @@ namespace net.puk06.AnimScript
     {
         /// <param name="from">区間の始点（"any" またはステート名）</param>
         /// <param name="to">区間の終点（"exit" またはステート名）</param>
-        public static void Build(AnimatorStateMachine stateMachine,
-            IReadOnlyDictionary<string, AnimatorState> states,
+        public static void Build(VirtualStateMachine stateMachine,
+            IReadOnlyDictionary<string, VirtualState> states,
             TransitionAst ast, string from, string to)
         {
             var dnf = ConditionLogic.ToDnf(ast.Condition);
 
             for (var i = 0; i < dnf.Count; i++)
             {
-                AnimatorStateTransition transition;
+                var transition = VirtualStateTransition.Create();
 
                 if (from == "any")
                 {
-                    transition = stateMachine.AddAnyStateTransition(states[to]);
-                    transition.canTransitionToSelf = ast.AllowSelf;
+                    transition.SetDestination(states[to]);
+                    transition.CanTransitionToSelf = ast.AllowSelf;
+                    stateMachine.AnyStateTransitions = stateMachine.AnyStateTransitions.Add(transition);
                 }
                 else if (to == "exit")
                 {
-                    transition = states[from].AddExitTransition();
+                    transition.SetExitDestination();
+                    states[from].Transitions = states[from].Transitions.Add(transition);
                 }
                 else
                 {
-                    transition = states[from].AddTransition(states[to]);
+                    transition.SetDestination(states[to]);
+                    states[from].Transitions = states[from].Transitions.Add(transition);
                 }
 
                 // or で分かれた遷移は、後から見分けられるよう番号を付ける
-                transition.name = dnf.Count > 1
+                transition.Name = dnf.Count > 1
                     ? $"{from} -> {to} [{i + 1}]"
                     : $"{from} -> {to}";
 
@@ -47,29 +52,31 @@ namespace net.puk06.AnimScript
             }
         }
 
-        static void ApplyOptions(AnimatorStateTransition transition, TransitionAst ast, List<ConditionAst> term)
+        static void ApplyOptions(VirtualStateTransition transition, TransitionAst ast, List<ConditionAst> term)
         {
             // exitTime が無い遷移は「即座に条件判定」が animscript の既定
-            transition.hasExitTime = ast.ExitTime != null;
-            if (ast.ExitTime != null)
-                transition.exitTime = (float)ast.ExitTime.Const();
+            transition.ExitTime = ast.ExitTime != null ? (float)ast.ExitTime.Const() : null;
 
             if (ast.Duration != null)
             {
-                transition.hasFixedDuration = true;
-                transition.duration = (float)ast.Duration.Const();
+                transition.HasFixedDuration = true;
+                transition.Duration = (float)ast.Duration.Const();
             }
 
+            var conditions = ImmutableList.CreateBuilder<AnimatorCondition>();
             foreach (var condition in term)
             {
                 // If / IfNot（bool 単体の条件）には比較する値が無いので 0 を渡す
                 // （Unity 側でも If / IfNot の threshold は使われない）
                 var threshold = condition.Value == null ? 0f : (float)condition.Value.Const();
-                transition.AddCondition(
-                    ConditionBuilder.ToMode(condition.Op),
-                    threshold,
-                    condition.Param);
+                conditions.Add(new AnimatorCondition
+                {
+                    mode = ConditionBuilder.ToMode(condition.Op),
+                    threshold = threshold,
+                    parameter = condition.Param,
+                });
             }
+            transition.Conditions = conditions.ToImmutable();
         }
     }
 }

@@ -2,7 +2,9 @@
   "name": "net.puk06.animscript",
   "displayName": "AnimScript",
   "version": "0.2.0",
-  "vpmDependencies": {},
+  "vpmDependencies": {
+    "nadena.dev.ndmf": ">=1.5.0"
+  },
   "author": {
     "name": "Pukorufu",
     "url": "https://github.com/puk06",

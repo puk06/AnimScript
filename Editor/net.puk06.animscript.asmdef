@@ -1,7 +1,11 @@
 {
-    "name": "net.puk06.animscript",
+    "name": "net.puk06.animscript.editor",
     "rootNamespace": "",
     "references": [
+        "net.puk06.animscript.runtime",
+        "nadena.dev.ndmf",
+        "nadena.dev.ndmf.runtime",
+        "nadena.dev.modular-avatar.core",
         "VRC.SDKBase"
     ],
     "includePlatforms": [

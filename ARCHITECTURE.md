@@ -81,15 +81,15 @@ Packages/net.puk06.animscript/
     │       └── ExpressionAst.cs
     │
     ├── Compiler/                        … コンパイル・生成
-    │   ├── AnimatorCompiler.cs          … 統括。Build(source) → BuildResult
+    │   ├── AnimatorCompiler.cs          … 統括。BuildInto(source, VAC) を NDMF プラグインから呼ぶ
     │   ├── AstExpander.cs               … AST 展開（for/while/var）
     │   ├── ScriptValidator.cs           … 意味チェック
     │   ├── ClipResolver.cs              … AnimationClip の解決
-    │   ├── BuildResult.cs               … ビルド結果（成否、パス、統計、診断）
+    │   ├── DiagnosticBag.cs             … 診断メッセージの収集
     │   ├── Diagnostic.cs                … エラー/警告の行番号付きメッセージ
     │   ├── DiagnosticBag.cs             … Diagnostic の収集
     │   └── Builder/                     … Unity オブジェクト生成
-    │       ├── AnimatorControllerBuilder.cs
+    │       ├── （Builder 群）            … VirtualLayer/VirtualState/VirtualTransition 等を構築
     │       ├── LayerBuilder.cs
     │       ├── StateBuilder.cs
     │       ├── TransitionBuilder.cs
@@ -176,7 +176,8 @@ A -> B when (X or Y) and Z   → A -> B [X and Z], A -> B [Y and Z]
 
 ### 3. 生成物は「中身を消して再利用」
 
-`AnimatorControllerBuilder` は既存の `.controller` があれば削除せず、中身（layers, parameters, stateMachines）だけをクリアして使い回します。
+NDMF 化により、AnimatorController ファイルへの直接書き出しは行わず、<br>
+`VirtualAnimatorController` を編集して NDMF のコミット処理に任せます。
 
 メリット：
 - GUID が変わらないため、アバターの Playable Layer 参照が切れない

@@ -1,4 +1,5 @@
-using UnityEditor.Animations;
+using System.Collections.Immutable;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 
 namespace net.puk06.AnimScript
@@ -9,12 +10,19 @@ namespace net.puk06.AnimScript
     /// </summary>
     internal static class StateLayout
     {
-        public static void Apply(AnimatorStateMachine stateMachine)
+        public static void Apply(VirtualStateMachine stateMachine)
         {
-            var children = stateMachine.states;
-            for (var i = 0; i < children.Length; i++)
-                children[i].position = PositionFor(i);
-            stateMachine.states = children;
+            var children = stateMachine.States;
+            var builder = ImmutableList.CreateBuilder<VirtualStateMachine.VirtualChildState>();
+
+            for (var i = 0; i < children.Count; i++)
+            {
+                var child = children[i];
+                child.Position = PositionFor(i);
+                builder.Add(child);
+            }
+
+            stateMachine.States = builder.ToImmutable();
         }
 
         static Vector3 PositionFor(int index)
