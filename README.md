@@ -163,14 +163,22 @@ any   -> Idle self                         // self … 自分自身への遷移�
 ### 条件の書き方
 
 ```txt
-when Grounded                    // bool が true のとき
-when !Grounded                   // bool が false のとき
-when Speed > 0.1                 // >  <  ==  != が使えます
-when Speed > 0.1 and Grounded    // and で AND 条件
+when Grounded                         // bool が true のとき
+when !Grounded                        // bool が false のとき
+when Speed > 0.1                      // >  <  ==  != が使えます（>= <= は無し）
+when Speed > 0.1 and Grounded         // and … 両方満たす
+when GestureLeft == 2 or GestureLeft == 3   // or … どちらか満たす
+when (A or B) and (C or D)            // 括弧でのグルーピングも可
 ```
 
+- `and` は `or` より優先されます（`A or B and C` = `A or (B and C)`）
+- **`or` は内部で複数の遷移に展開されます**（Unity の遷移条件は AND のリストしか持てないため）
+  - 例: `A -> B when X or Y` → `A -> B [X]` と `A -> B [Y]` の2本の遷移
+  - 括弧を組み合わせた場合は分配されます: `(A or B) and (C or D)` → 4本の遷移
+  - or で分かれた遷移には `[1]` `[2]` のような番号が付きます
+- 1行から生成される遷移は **16本まで** です
+- `!(A or B)` のような括弧ごとの否定は使えません（`!A and !B` のように分解してください）
 - `>=` / `<=` は **使えません**（Unity の AnimatorCondition に無いため）。`>` `<` で書き直してください
-- OR 条件はありません。`A -> C when X` と `B -> C when Y` のように遷移を分けて書いてください
 
 ## ビルド時変数（var / 代入）
 

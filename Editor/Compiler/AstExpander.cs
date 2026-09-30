@@ -312,21 +312,40 @@ namespace net.puk06.AnimScript
             foreach (var node in source.Chain)
                 transition.Chain.Add(ExpandText(node, scope, source.Location));
 
-            foreach (var condition in source.Conditions)
-                transition.Conditions.Add(ExpandCondition(condition, scope));
+            transition.Condition = ExpandConditionExpr(source.Condition, scope);
 
             return transition;
         }
 
-        ConditionAst ExpandCondition(ConditionAst source, VarScope scope)
+        /// <summary>条件式を複製しながら、パラメータ名と値の $変数 を展開する。</summary>
+        ConditionExprAst ExpandConditionExpr(ConditionExprAst source, VarScope scope)
         {
-            return new ConditionAst
+            switch (source)
             {
-                Param = ExpandText(source.Param, scope, source.Location),
-                Op = source.Op,
-                Value = ExpandExpr(source.Value, scope),
-                Location = source.Location,
-            };
+                case null:
+                    return null;
+
+                case ConditionAst term:
+                    return new ConditionAst
+                    {
+                        Param = ExpandText(term.Param, scope, term.Location),
+                        Op = term.Op,
+                        Value = ExpandExpr(term.Value, scope),
+                        Location = term.Location,
+                    };
+
+                case ConditionBinaryAst binary:
+                    return new ConditionBinaryAst
+                    {
+                        IsOr = binary.IsOr,
+                        Left = ExpandConditionExpr(binary.Left, scope),
+                        Right = ExpandConditionExpr(binary.Right, scope),
+                        Location = binary.Location,
+                    };
+
+                default:
+                    return null;
+            }
         }
 
         // ================================================================

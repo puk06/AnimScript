@@ -5,6 +5,10 @@ namespace net.puk06.AnimScript
 {
     /// <summary>
     /// TransitionAst の1区間（チェーンの1つ分）→ AnimatorStateTransition の生成。
+    ///
+    /// 条件式に or が含まれる場合は DNF（AND のかたまりの OR）に展開され、
+    /// かたまり1つにつき1本の遷移が作られる。
+    /// 例: A -> B when X or Y  →  A→B [X] と A→B [Y] の2本
     /// </summary>
     internal static class TransitionBuilder
     {
@@ -14,27 +18,36 @@ namespace net.puk06.AnimScript
             IReadOnlyDictionary<string, AnimatorState> states,
             TransitionAst ast, string from, string to)
         {
-            AnimatorStateTransition transition;
+            var dnf = ConditionLogic.ToDnf(ast.Condition);
 
-            if (from == "any")
+            for (var i = 0; i < dnf.Count; i++)
             {
-                transition = stateMachine.AddAnyStateTransition(states[to]);
-                transition.canTransitionToSelf = ast.AllowSelf;
-            }
-            else if (to == "exit")
-            {
-                transition = states[from].AddExitTransition();
-            }
-            else
-            {
-                transition = states[from].AddTransition(states[to]);
-            }
+                AnimatorStateTransition transition;
 
-            transition.name = $"{from} -> {to}";
-            ApplyOptions(transition, ast);
+                if (from == "any")
+                {
+                    transition = stateMachine.AddAnyStateTransition(states[to]);
+                    transition.canTransitionToSelf = ast.AllowSelf;
+                }
+                else if (to == "exit")
+                {
+                    transition = states[from].AddExitTransition();
+                }
+                else
+                {
+                    transition = states[from].AddTransition(states[to]);
+                }
+
+                // or で分かれた遷移は、後から見分けられるよう番号を付ける
+                transition.name = dnf.Count > 1
+                    ? $"{from} -> {to} [{i + 1}]"
+                    : $"{from} -> {to}";
+
+                ApplyOptions(transition, ast, dnf[i]);
+            }
         }
 
-        static void ApplyOptions(AnimatorStateTransition transition, TransitionAst ast)
+        static void ApplyOptions(AnimatorStateTransition transition, TransitionAst ast, List<ConditionAst> term)
         {
             // exitTime が無い遷移は「即座に条件判定」が animscript の既定
             transition.hasExitTime = ast.ExitTime != null;
@@ -47,7 +60,7 @@ namespace net.puk06.AnimScript
                 transition.duration = (float)ast.Duration.Const();
             }
 
-            foreach (var condition in ast.Conditions)
+            foreach (var condition in term)
             {
                 transition.AddCondition(
                     ConditionBuilder.ToMode(condition.Op),

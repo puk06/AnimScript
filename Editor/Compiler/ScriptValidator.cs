@@ -141,7 +141,7 @@ namespace net.puk06.AnimScript
                 if (chain[1] == "exit" || chain[1] == "any")
                     diagnostics.Error(transition.Location, "entry の次はステート名を書いてください（entry -> ステート名）");
 
-                var hasOptions = transition.Conditions.Count > 0
+                var hasOptions = transition.Condition != null
                                  || transition.ExitTime != null
                                  || transition.Duration != null
                                  || transition.AllowSelf;
@@ -159,11 +159,19 @@ namespace net.puk06.AnimScript
                 diagnostics.Error(transition.Location, "self は any -> からの遷移でのみ使えます");
 
             // 条件で使うパラメータは宣言必須（宣言が無いと Animator 側で条件が機能しない）
-            foreach (var condition in transition.Conditions)
+            foreach (var term in ConditionLogic.EnumerateTerms(transition.Condition))
             {
-                if (!declaredParams.Contains(condition.Param))
-                    diagnostics.Error(condition.Location,
-                        $"パラメータ「{condition.Param}」は宣言されていません。スクリプト上部に「param {condition.Param} : float」のように宣言してください");
+                if (!declaredParams.Contains(term.Param))
+                    diagnostics.Error(term.Location,
+                        $"パラメータ「{term.Param}」は宣言されていません。スクリプト上部に「param {term.Param} : float」のように宣言してください");
+            }
+
+            // or 展開でできる遷移の本数チェック（暴走防止）
+            var termCount = ConditionLogic.CountTerms(transition.Condition);
+            if (termCount > ConditionLogic.MaxDnfTerms)
+            {
+                diagnostics.Error(transition.Location,
+                    $"or の組み合わせが多すぎます。この行から {termCount} 本の遷移が作られます（上限は {ConditionLogic.MaxDnfTerms} 本）。条件を整理してください");
             }
         }
 

@@ -33,9 +33,10 @@ namespace net.puk06.AnimScript
                 stateCount += layer.States.Count;
                 foreach (var transition in layer.Transitions)
                 {
-                    // チェーンの区間数を数える（entry 始まりはデフォルト指定分を除く）
+                    // チェーンの区間数（entry 始まりはデフォルト指定分を除く）× or 展開の本数
                     var startIndex = transition.Chain[0] == "entry" ? 1 : 0;
-                    transitionCount += transition.Chain.Count - 1 - startIndex;
+                    var segments = transition.Chain.Count - 1 - startIndex;
+                    transitionCount += segments * ConditionLogic.CountTerms(transition.Condition);
                 }
             }
 

@@ -662,23 +662,71 @@ namespace net.puk06.AnimScript
 
         void ParseConditions(TransitionAst transition)
         {
-            if (transition.Conditions.Count > 0)
-                throw Error(Current, "when は1回だけ指定できます（条件を増やすには and でつないでください）");
+            if (transition.Condition != null)
+                throw Error(Current, "when は1回だけ指定できます（条件を増やすには and / or でつないでください）");
 
-            transition.Conditions.Add(ParseCondition());
-            while (CheckKeyword("and"))
-            {
-                Advance();
-                transition.Conditions.Add(ParseCondition());
-            }
+            transition.Condition = ParseConditionOr();
         }
 
-        ConditionAst ParseCondition()
+        // --- 条件式（or / and / 括弧） ---
+        // 優先順位: or < and < 項。括弧で明示もできる。
+
+        ConditionExprAst ParseConditionOr()
         {
+            var left = ParseConditionAnd();
+            while (CheckKeyword("or"))
+            {
+                var keyword = Advance();
+                var right = ParseConditionAnd();
+                left = new ConditionBinaryAst
+                {
+                    IsOr = true,
+                    Left = left,
+                    Right = right,
+                    Location = keyword.Location,
+                };
+            }
+            return left;
+        }
+
+        ConditionExprAst ParseConditionAnd()
+        {
+            var left = ParseConditionPrimary();
+            while (CheckKeyword("and"))
+            {
+                var keyword = Advance();
+                var right = ParseConditionPrimary();
+                left = new ConditionBinaryAst
+                {
+                    IsOr = false,
+                    Left = left,
+                    Right = right,
+                    Location = keyword.Location,
+                };
+            }
+            return left;
+        }
+
+        ConditionExprAst ParseConditionPrimary()
+        {
+            // 括弧: (A or B) and C のような結合
+            if (Current.Kind == TokenKind.OpenParen)
+            {
+                Advance();
+                var inner = ParseConditionOr();
+                Expect(TokenKind.CloseParen, "「)」");
+                return inner;
+            }
+
             // !Param （false のとき）
             if (Current.Kind == TokenKind.Bang)
             {
                 var bang = Advance();
+
+                // !(A or B) の形は表現できない（Unity に >= / <= が無く、否定が作れないため）
+                if (Current.Kind == TokenKind.OpenParen)
+                    throw Error(bang, "「!(...)」の形は使えません。条件を分解して書いてください（例: !(A or B) → !A and !B）");
+
                 var notParam = Expect(TokenKind.Identifier, "パラメータ名");
                 return new ConditionAst
                 {

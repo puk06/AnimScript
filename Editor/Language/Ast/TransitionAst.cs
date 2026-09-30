@@ -12,7 +12,9 @@ namespace net.puk06.AnimScript
     internal sealed class TransitionAst : IBlockItem
     {
         public List<string> Chain { get; } = new List<string>();
-        public List<ConditionAst> Conditions { get; } = new List<ConditionAst>();
+
+        /// <summary>when の条件式（and / or / 括弧 を含む木）。無条件なら null。</summary>
+        public ConditionExprAst Condition { get; set; }
 
         /// <summary>exitTime 指定。null なら hasExitTime = false。</summary>
         public ExprAst ExitTime { get; set; }

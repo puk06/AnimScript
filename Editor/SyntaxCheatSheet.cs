@@ -47,10 +47,12 @@ Walk -> exit exitTime 0.95           ← Exit へ抜ける
 any  -> Idle when GestureLeft == 0   ← AnyState から
 any  -> Idle self                    ← self で自分への遷移も許可
 
-■ 条件（when の後、and で複数指定可）
+■ 条件（when の後）
 Param          … true のとき
 !Param         … false のとき
-Param > 1      … > < == != が使えます（>= <= は無し）
+Param > 1      … > < == !=（>= <= は無し）
+A and B        … 両方 / A or B   … どちらか
+(A or B) and C … 括弧もOK（or は複数の遷移に展開。上限16本）
 
 ■ ビルド時ループ・変数（くり返し生成）
 var i = 0                        ← 変数宣言（参照は $i と書く）
