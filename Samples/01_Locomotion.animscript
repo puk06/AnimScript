@@ -3,7 +3,7 @@
 // 移動レイヤーの基本サンプル
 //
 // 【ビルド方法】
-//   Tools > ぷこのツール > Animator Builder を開いて
+//   Tools > ぷこのつーる > AnimScript Builder を開いて
 //   このファイルをドロップ → 「ビルド」
 //   → このフォルダの build/01_Locomotion.controller が生成されます
 //
