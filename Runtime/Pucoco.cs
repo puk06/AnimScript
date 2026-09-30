@@ -7,7 +7,7 @@ using VRC.SDK3.Avatars.Components;
 namespace net.puk06.AnimScript
 {
     [Serializable]
-    [AddComponentMenu("AnimScript/Pucoco!")]
+    [AddComponentMenu("Pucoco!")]
     public class Pucoco : MonoBehaviour
     {
         [Header("ビルドするスクリプト")]
