@@ -249,7 +249,7 @@ namespace net.puk06.AnimScript
         /// <summary>宣言・代入の変数名には $ を付けない、のチェック。</summary>
         void CheckPlainVariableName(Token name)
         {
-            if (name.Text.Contains("$"))
+            if (name.Text.Contains('$'))
                 throw Error(name, "変数の宣言・代入では $ を付けずに書いてください（参照するときだけ「$i」のように書きます）");
         }
 
@@ -846,11 +846,11 @@ namespace net.puk06.AnimScript
             }
 
             // $変数参照
-            if (Current.Kind == TokenKind.Identifier && Current.Text.StartsWith("$"))
+            if (Current.Kind == TokenKind.Identifier && Current.Text.StartsWith('$'))
             {
                 var variable = Advance();
                 var name = variable.Text.Substring(1);
-                if (name.Length == 0 || name.Contains("$"))
+                if (name.Length == 0 || name.Contains('$'))
                     throw Error(variable, "式の中の変数は「$i」のように1つだけ書いてください");
                 return new VarExpr(name, variable.Location);
             }

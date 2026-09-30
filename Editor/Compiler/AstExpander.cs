@@ -364,7 +364,7 @@ namespace net.puk06.AnimScript
         /// </summary>
         string ExpandText(string text, VarScope scope, SourceLocation location)
         {
-            if (!text.Contains("$")) return text;
+            if (!text.Contains('$')) return text;
 
             var builder = new StringBuilder();
             var index = 0;
