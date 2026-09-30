@@ -20,7 +20,7 @@ namespace net.puk06.AnimScript
 #if VRC_SDK_VRCSDK3
             var driver = state.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
             driver.localOnly = block.LocalOnly;
-            driver.debugString = $"AnimatorBuilder: {block.Actions.Count} action(s)";
+            driver.debugString = $"AnimScriptBuilder: {block.Actions.Count} action(s)";
 
             foreach (var action in block.Actions)
                 driver.parameters.Add(BuildParameter(action));

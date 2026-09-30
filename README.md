@@ -292,7 +292,7 @@ for i in 0..3 {
 ```
 AnimatorBuildor/
 ├── Editor/
-│   ├── AnimatorBuilderWindow.cs   … ウィンドウUI
+│   ├── AnimScriptBuilderWindow.cs   … ウィンドウUI
 │   ├── SyntaxCheatSheet.cs        … ウィンドウ内チートシート
 │   ├── Language/                  … 言語フロントエンド（Unity 非依存）
 │   │   ├── Lexer.cs               … 字句解析

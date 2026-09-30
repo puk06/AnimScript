@@ -10,12 +10,12 @@ namespace net.puk06.AnimScript
     /// animscript をドロップして AnimatorController を生成するウィンドウ。
     /// メニュー「Tools > ぷこのつーる > AnimScript Builder」から開く。
     /// </summary>
-    internal sealed class AnimatorBuilderWindow : EditorWindow
+    internal sealed class AnimScriptBuilderWindow : EditorWindow
     {
         [MenuItem("Tools/ぷこのつーる/AnimScript Builder")]
         static void Open()
         {
-            var window = GetWindow<AnimatorBuilderWindow>("AnimScript Builder");
+            var window = GetWindow<AnimScriptBuilderWindow>("AnimScript Builder");
             window.minSize = new Vector2(380, 400);
             window.Show();
         }
@@ -127,7 +127,7 @@ namespace net.puk06.AnimScript
             }
             catch (Exception exception)
             {
-                Debug.LogError($"[AnimatorBuilder] 読み込みに失敗しました: {exception.Message}", _scriptFile);
+                Debug.LogError($"[AnimScriptBuilder] 読み込みに失敗しました: {exception.Message}", _scriptFile);
                 return;
             }
 
@@ -136,7 +136,7 @@ namespace net.puk06.AnimScript
             // Unity コンソールにも流す（行番号付き・ダブルクリックでファイルが開ける）
             foreach (var diagnostic in _lastResult.Diagnostics)
             {
-                var message = $"[AnimatorBuilder] {assetPath}({diagnostic.Location.Line}): {diagnostic.Message}";
+                var message = $"[AnimScriptBuilder] {assetPath}({diagnostic.Location.Line}): {diagnostic.Message}";
                 switch (diagnostic.Severity)
                 {
                     case DiagnosticSeverity.Error:
