@@ -24,11 +24,6 @@ namespace net.puk06.AnimScript
 
             foreach (var action in block.Actions)
                 driver.parameters.Add(BuildParameter(action));
-
-            // ステートがアセット化済みの場合、SMB も同じアセットに入っているはずだが、
-            // 万一入っていなければ明示的に追加する（保存漏れ防止の保険）
-            if (!AssetDatabase.Contains(driver))
-                AssetDatabase.AddObjectToAsset(driver, state);
 #else
             diagnostics.Warning(block.Location,
                 "VRC SDK (Avatar 3.0) が見つからないため、driver ブロックはスキップされました");
