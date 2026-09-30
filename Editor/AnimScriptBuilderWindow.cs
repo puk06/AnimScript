@@ -110,7 +110,7 @@ namespace net.puk06.AnimScript
 
         void DrawBuildButton()
         {
-            using (new EditorGUI.DisabledScope(_scriptFile == null))
+            using (new EditorGUI.DisabledScope(_scriptFile == null || !AssetDatabase.GetAssetPath(_scriptFile).EndsWith(".animscript")))
             {
                 if (GUILayout.Button("ビルド", GUILayout.Height(32)))
                     Build();
