@@ -8,14 +8,14 @@ namespace net.puk06.AnimScript
 {
     /// <summary>
     /// animscript をドロップして AnimatorController を生成するウィンドウ。
-    /// メニュー「Tools > ぷこのツール > Animator Builder」から開く。
+    /// メニュー「Tools > ぷこのつーる > AnimScript Builder」から開く。
     /// </summary>
     internal sealed class AnimatorBuilderWindow : EditorWindow
     {
-        [MenuItem("Tools/ぷこのツール/Animator Builder")]
+        [MenuItem("Tools/ぷこのつーる/AnimScript Builder")]
         static void Open()
         {
-            var window = GetWindow<AnimatorBuilderWindow>("Animator Builder");
+            var window = GetWindow<AnimatorBuilderWindow>("AnimScript Builder");
             window.minSize = new Vector2(380, 400);
             window.Show();
         }
@@ -31,7 +31,7 @@ namespace net.puk06.AnimScript
             {
                 _scroll = scroll.scrollPosition;
 
-                EditorGUILayout.LabelField("Animator Builder", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("AnimScript Builder", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField(
                     "animscript（テキスト）から AnimatorController を生成します。\n" +
                     "出力先: スクリプトと同じフォルダの build/ 内",
