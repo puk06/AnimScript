@@ -1,4 +1,4 @@
-# Animator Builder（animscript）
+# AnimScript
 
 テキストファイル（**.animscript**）を書くだけで、Unity の **AnimatorController を自動生成**するエディターツールです。
 VRChat アバター（Avatar 3.0）での利用を想定しており、**VRC Avatar Parameter Driver** にも対応しています。
@@ -36,7 +36,7 @@ layer "Locomotion" default wd on {
 
 ## 使い方
 
-1. Unity メニューの **Tools > ぷこのツール > Animator Builder** を開く
+1. Unity メニューの **Tools > ぷこのつーる > AnimScript Builder** を開く
 2. `.animscript` ファイルをウィンドウに **ドラッグ＆ドロップ**（または ObjectField から選択）
 3. **ビルド** ボタンを押す
 4. スクリプトと同じフォルダの **`build/スクリプト名.controller`** が生成されます
