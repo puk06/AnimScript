@@ -240,9 +240,10 @@ namespace net.puk06.AnimScript
             bool uniformWriteDefaults, string scriptDirectory, List<string> warnings)
         {
             var clipRef = GetClipReference(state, scriptDirectory, warnings);
-            var driverLines = DriverExporter.Export(state, out var localOnly, warnings);
+            var drivers = DriverExporter.ExportAll(state, warnings);
+            var controlLines = ControlExporter.Export(state, warnings);
 
-            if (driverLines == null)
+            if (drivers.Count == 0 && controlLines.Count == 0)
             {
                 // --- 1行書き ---
                 var line = new StringBuilder($"state {outName}");
@@ -252,7 +253,7 @@ namespace net.puk06.AnimScript
                 return;
             }
 
-            // --- ブロック書き（driver 付き） ---
+            // --- ブロック書き（state behaviour 付き） ---
             writer.Line($"state {outName} {{");
             writer.Indent();
 
@@ -276,12 +277,20 @@ namespace net.puk06.AnimScript
             if (!uniformWriteDefaults)
                 writer.Line(state.writeDefaultValues ? "wd on" : "wd off");
 
-            writer.Line(localOnly ? "driver localOnly {" : "driver {");
-            writer.Indent();
-            foreach (var driverLine in driverLines)
-                writer.Line(driverLine);
-            writer.Unindent();
-            writer.Line("}");
+            foreach (var driver in drivers)
+            {
+                writer.Line(driver.LocalOnly ? "driver localOnly {" : "driver {");
+                writer.Indent();
+                foreach (var driverLine in driver.Lines) writer.Line(driverLine);
+                writer.Unindent();
+                writer.Line("}");
+            }
+            foreach (var controlLine in controlLines)
+            {
+                if (controlLine == "}") writer.Unindent();
+                writer.Line(controlLine);
+                if (controlLine.EndsWith("{")) writer.Indent();
+            }
 
             writer.Unindent();
             writer.Line("}");

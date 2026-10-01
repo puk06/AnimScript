@@ -45,8 +45,12 @@ namespace net.puk06.AnimScript
             if (ast.FootIK.HasValue)
                 state.IKOnFeet = ast.FootIK.Value;
 
-            if (ast.Driver != null)
-                DriverBuilder.Build(state, ast.Driver, diagnostics);
+            foreach (var driver in ast.Drivers)
+                DriverBuilder.Build(state, driver, diagnostics);
+            foreach (var control in ast.PlayableLayerControls)
+                DriverBuilder.Build(state, control, diagnostics);
+            foreach (var control in ast.AnimatorTrackingControls)
+                DriverBuilder.Build(state, control, diagnostics);
 
             return state;
         }

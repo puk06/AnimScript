@@ -85,8 +85,8 @@ namespace net.puk06.AnimScript
                 if (state.MirrorParameter != null && !declaredParams.Contains(state.MirrorParameter))
                     diagnostics.Warning(state.Location, $"mirrorParam の対象パラメータ「{state.MirrorParameter}」が param 宣言されていません");
 
-                if (state.Driver == null) continue;
-                foreach (var action in state.Driver.Actions)
+                foreach (var driver in state.Drivers)
+                foreach (var action in driver.Actions)
                 {
                     if (!declaredParams.Contains(action.Target))
                         diagnostics.Warning(action.Location, $"driver の対象パラメータ「{action.Target}」が param 宣言されていません");

@@ -267,8 +267,23 @@ namespace net.puk06.AnimScript
                 Location = source.Location,
             };
 
-            if (source.Driver != null)
-                state.Driver = ExpandDriver(source.Driver, scope);
+            foreach (var driver in source.Drivers)
+                state.Drivers.Add(ExpandDriver(driver, scope));
+            foreach (var control in source.PlayableLayerControls)
+                state.PlayableLayerControls.Add(new PlayableLayerControlAst
+                {
+                    Layer = ExpandText(control.Layer, scope, control.Location),
+                    GoalWeight = ExpandExpr(control.GoalWeight, scope),
+                    BlendDuration = ExpandExpr(control.BlendDuration, scope),
+                    Location = control.Location,
+                });
+            foreach (var control in source.AnimatorTrackingControls)
+            {
+                var expanded = new AnimatorTrackingControlAst { Location = control.Location };
+                foreach (var setting in control.Settings)
+                    expanded.Settings[setting.Key] = ExpandText(setting.Value, scope, control.Location);
+                state.AnimatorTrackingControls.Add(expanded);
+            }
 
             return state;
         }

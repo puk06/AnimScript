@@ -19,43 +19,45 @@ namespace net.puk06.AnimScript
         /// <summary>
         /// driver ブロックの中身の行を返す。ドライバーが付いていなければ null。
         /// </summary>
-        public static List<string> Export(AnimatorState state, out bool localOnly, List<string> warnings)
+        public sealed class ExportedDriver
         {
-            localOnly = false;
+            public bool LocalOnly;
+            public List<string> Lines;
+        }
+
+        public static List<ExportedDriver> ExportAll(AnimatorState state, List<string> warnings)
+        {
+            var result = new List<ExportedDriver>();
 
 #if VRC_SDK_VRCSDK3
-            var driver = state.behaviours.OfType<VRCAvatarParameterDriver>().FirstOrDefault();
-            if (driver == null) return null;
-
-            localOnly = driver.localOnly;
-
-            var lines = new List<string>();
-            foreach (var parameter in driver.parameters)
+            foreach (var driver in state.behaviours.OfType<VRCAvatarParameterDriver>())
             {
-                var name = NameSanitizer.SanitizeQuiet(parameter.name);
-                switch (parameter.type)
+                var lines = new List<string>();
+                foreach (var parameter in driver.parameters)
                 {
-                    case VRC_AvatarParameterDriver.ChangeType.Set:
-                        lines.Add($"set {name} {ScriptTextWriter.Format(parameter.value)}");
-                        break;
-                    case VRC_AvatarParameterDriver.ChangeType.Add:
-                        lines.Add($"add {name} {ScriptTextWriter.Format(parameter.value)}");
-                        break;
-                    case VRC_AvatarParameterDriver.ChangeType.Random:
-                        lines.Add($"random {name} {ScriptTextWriter.Format(parameter.valueMin)} {ScriptTextWriter.Format(parameter.valueMax)}");
-                        break;
-                    case VRC_AvatarParameterDriver.ChangeType.Copy:
-                        lines.Add($"copy {NameSanitizer.SanitizeQuiet(parameter.source)} -> {name}");
-                        break;
-                    default:
-                        warnings.Add($"ステート「{state.name}」の driver に未対応の種類（{parameter.type}）があり、スキップしました");
-                        break;
+                    var name = NameSanitizer.SanitizeQuiet(parameter.name);
+                    switch (parameter.type)
+                    {
+                        case VRC_AvatarParameterDriver.ChangeType.Set: lines.Add($"set {name} {ScriptTextWriter.Format(parameter.value)}"); break;
+                        case VRC_AvatarParameterDriver.ChangeType.Add: lines.Add($"add {name} {ScriptTextWriter.Format(parameter.value)}"); break;
+                        case VRC_AvatarParameterDriver.ChangeType.Random: lines.Add($"random {name} {ScriptTextWriter.Format(parameter.valueMin)} {ScriptTextWriter.Format(parameter.valueMax)}"); break;
+                        case VRC_AvatarParameterDriver.ChangeType.Copy: lines.Add($"copy {NameSanitizer.SanitizeQuiet(parameter.source)} -> {name}"); break;
+                        default: warnings.Add($"ステート「{state.name}」の driver に未対応の種類（{parameter.type}）があり、スキップしました"); break;
+                    }
                 }
+                result.Add(new ExportedDriver { LocalOnly = driver.localOnly, Lines = lines });
             }
-            return lines;
+            return result;
 #else
-            return null;
+            return result;
 #endif
+        }
+
+        public static List<string> Export(AnimatorState state, out bool localOnly, List<string> warnings)
+        {
+            var all = ExportAll(state, warnings);
+            localOnly = all.Count > 0 && all[0].LocalOnly;
+            return all.Count > 0 ? all[0].Lines : null;
         }
     }
 }

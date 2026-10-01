@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace net.puk06.AnimScript
 {
     /// <summary>
@@ -43,8 +45,9 @@ namespace net.puk06.AnimScript
         public string MirrorParameter { get; set; }
         public bool? FootIK { get; set; }
 
-        /// <summary>VRC Parameter Driver ブロック。無ければ null。</summary>
-        public DriverBlockAst Driver { get; set; }
+        public List<DriverBlockAst> Drivers { get; } = new List<DriverBlockAst>();
+        public List<PlayableLayerControlAst> PlayableLayerControls { get; } = new List<PlayableLayerControlAst>();
+        public List<AnimatorTrackingControlAst> AnimatorTrackingControls { get; } = new List<AnimatorTrackingControlAst>();
 
         public SourceLocation Location { get; set; }
     }

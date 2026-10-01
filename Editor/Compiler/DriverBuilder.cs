@@ -7,6 +7,12 @@ using VRC.SDKBase;
 
 namespace net.puk06.AnimScript
 {
+    // The SDK declares these behaviours abstract, so use concrete wrappers for Unity serialization.
+#if VRC_SDK_VRCSDK3
+    internal sealed class AnimScriptPlayableLayerControl : VRC_PlayableLayerControl { }
+    internal sealed class AnimScriptAnimatorTrackingControl : VRC_AnimatorTrackingControl { }
+#endif
+
     /// <summary>
     /// DriverBlockAst → VRC Avatar Parameter Driver (StateMachineBehaviour) の生成。
     ///
@@ -30,6 +36,60 @@ namespace net.puk06.AnimScript
 #else
             diagnostics.Warning(block.Location,
                 "VRC SDK (Avatar 3.0) が見つからないため、driver ブロックはスキップされました");
+#endif
+        }
+
+        public static void Build(VirtualState state, PlayableLayerControlAst block, DiagnosticBag diagnostics)
+        {
+#if VRC_SDK_VRCSDK3
+            if (!System.Enum.TryParse<VRC_PlayableLayerControl.BlendableLayer>(block.Layer, out var layer))
+            {
+                diagnostics.Error(block.Location, $"不明なPlayable Layer「{block.Layer}」です（Action / FX / Gesture / Additive）");
+                return;
+            }
+            var control = ScriptableObject.CreateInstance<AnimScriptPlayableLayerControl>();
+            control.name = "VRC_PlayableLayerControl";
+            control.layer = layer;
+            control.goalWeight = block.GoalWeight == null ? 1f : (float)block.GoalWeight.Const();
+            control.blendDuration = block.BlendDuration == null ? 0f : (float)block.BlendDuration.Const();
+            control.debugString = "AnimScriptBuilder: playableLayerControl";
+            state.Behaviours = state.Behaviours.Add(control);
+#else
+            diagnostics.Warning(block.Location, "VRC SDK (Avatar 3.0) が見つからないため、playableLayerControl ブロックはスキップされました");
+#endif
+        }
+
+        public static void Build(VirtualState state, AnimatorTrackingControlAst block, DiagnosticBag diagnostics)
+        {
+#if VRC_SDK_VRCSDK3
+            var control = ScriptableObject.CreateInstance<AnimScriptAnimatorTrackingControl>();
+            control.name = "VRC_AnimatorTrackingControl";
+            foreach (var setting in block.Settings)
+            {
+                if (!System.Enum.TryParse<VRC_AnimatorTrackingControl.TrackingType>(setting.Value, out var value))
+                {
+                    diagnostics.Error(block.Location, $"不明なTrackingType「{setting.Value}」です（NoChange / Tracking / Animation）");
+                    continue;
+                }
+                switch (setting.Key)
+                {
+                    case "head": control.trackingHead = value; break;
+                    case "leftHand": control.trackingLeftHand = value; break;
+                    case "rightHand": control.trackingRightHand = value; break;
+                    case "hip": control.trackingHip = value; break;
+                    case "leftFoot": control.trackingLeftFoot = value; break;
+                    case "rightFoot": control.trackingRightFoot = value; break;
+                    case "leftFingers": control.trackingLeftFingers = value; break;
+                    case "rightFingers": control.trackingRightFingers = value; break;
+                    case "eyes": control.trackingEyes = value; break;
+                    case "mouth": control.trackingMouth = value; break;
+                    default: diagnostics.Error(block.Location, $"不明なtrackingControl項目「{setting.Key}」です"); break;
+                }
+            }
+            control.debugString = "AnimScriptBuilder: trackingControl";
+            state.Behaviours = state.Behaviours.Add(control);
+#else
+            diagnostics.Warning(block.Location, "VRC SDK (Avatar 3.0) が見つからないため、trackingControl ブロックはスキップされました");
 #endif
         }
 
