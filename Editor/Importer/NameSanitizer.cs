@@ -18,7 +18,8 @@ namespace net.puk06.AnimScript
         {
             "param", "layer", "state", "entry", "exit", "any",
             "when", "and", "or", "dur", "offset", "exitTime", "self",
-            "speed", "wd", "loop", "clip", "none",
+            "speed", "speedParam", "sp", "cycleOffset", "co", "cycleOffsetParam", "cop",
+            "time", "mirror", "mirrorParam", "mp", "wd", "loop", "clip", "none",
             "driver", "localOnly", "set", "add", "random", "copy",
             "default", "weight", "float", "int", "bool",
             "on", "off", "var", "for", "while", "in", "step",

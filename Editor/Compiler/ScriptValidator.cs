@@ -78,6 +78,13 @@ namespace net.puk06.AnimScript
                 if (state.TimeParameter != null && !declaredParams.Contains(state.TimeParameter))
                     diagnostics.Warning(state.Location, $"time の対象パラメータ「{state.TimeParameter}」が param 宣言されていません");
 
+                if (state.SpeedParameter != null && !declaredParams.Contains(state.SpeedParameter))
+                    diagnostics.Warning(state.Location, $"speedParam の対象パラメータ「{state.SpeedParameter}」が param 宣言されていません");
+                if (state.CycleOffsetParameter != null && !declaredParams.Contains(state.CycleOffsetParameter))
+                    diagnostics.Warning(state.Location, $"cycleOffsetParam の対象パラメータ「{state.CycleOffsetParameter}」が param 宣言されていません");
+                if (state.MirrorParameter != null && !declaredParams.Contains(state.MirrorParameter))
+                    diagnostics.Warning(state.Location, $"mirrorParam の対象パラメータ「{state.MirrorParameter}」が param 宣言されていません");
+
                 if (state.Driver == null) continue;
                 foreach (var action in state.Driver.Actions)
                 {

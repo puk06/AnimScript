@@ -105,9 +105,12 @@ state Empty                               // 空ステート（motion 無し）
 state Pose {
     clip "Pose.anim"    // BlendTree の .asset も指定可能。空にする場合は clip none
     speed 1.0
+    speedParam SpeedMultiplier
     cycleOffset 0.25
+    cycleOffsetParam CycleOffset
     time MotionTime
     mirror on
+    mirrorParam Mirror
     footIK on
     wd off
     loop on
@@ -118,9 +121,12 @@ state Pose {
 | オプション | 意味 |
 |---|---|
 | `speed 数値` | ステートの再生速度 |
+| `speedParam パラメータ名`（`sp` と省略可） | 再生速度を制御するパラメータ |
 | `cycleOffset 数値`（`co` と省略可） | クリップの再生開始位置 |
+| `cycleOffsetParam パラメータ名`（`cop` と省略可） | クリップの再生開始位置を制御するパラメータ |
 | `time パラメータ名` | Motion Time を制御するパラメータ |
 | `mirror on/off` | ステートのミラー再生 |
+| `mirrorParam パラメータ名`（`mp` と省略可） | ミラー再生を制御するパラメータ |
 | `footIK on/off` | Foot IK |
 | `wd on/off`（`writeDefault` とも書けます） | Write Defaults（レイヤー指定より優先） |
 | `loop on/off` | このクリップの Loop Time ※レイヤー指定より優先 |

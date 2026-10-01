@@ -441,13 +441,16 @@ namespace net.puk06.AnimScript
                    && !IsAtEnd)
             {
                 if (CheckKeyword("speed")) { Advance(); state.Speed = ParseExpression(); }
+                else if (CheckKeyword("speedParam") || CheckKeyword("sp")) { Advance(); state.SpeedParameter = ParseParameterName("再生速度用パラメータ名"); }
                 else if (CheckKeyword("cycleOffset") || CheckKeyword("co")) { Advance(); state.CycleOffset = ParseExpression(); }
+                else if (CheckKeyword("cycleOffsetParam") || CheckKeyword("cop")) { Advance(); state.CycleOffsetParameter = ParseParameterName("Cycle Offset 用パラメータ名"); }
                 else if (CheckKeyword("time")) { Advance(); state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text; }
                 else if (CheckKeyword("wd") || CheckKeyword("writeDefault")) { var option = Advance(); state.WriteDefaults = ParseOnOff(option.Text); }
                 else if (CheckKeyword("loop")) { Advance(); state.Loop = ParseOnOff("loop"); }
                 else if (CheckKeyword("mirror")) { Advance(); state.Mirror = ParseOnOff("mirror"); }
+                else if (CheckKeyword("mirrorParam") || CheckKeyword("mp")) { Advance(); state.MirrorParameter = ParseParameterName("ミラー用パラメータ名"); }
                 else if (CheckKeyword("footIK")) { Advance(); state.FootIK = ParseOnOff("footIK"); }
-                else throw Error(Current, $"不明なステートオプション「{Current.Describe()}」です。speed / cycleOffset（co） / time / wd（writeDefault） / loop / mirror / footIK が使えます");
+                else throw Error(Current, $"不明なステートオプション「{Current.Describe()}」です。speed / speedParam（sp） / cycleOffset（co） / cycleOffsetParam（cop） / time / wd（writeDefault） / loop / mirror / mirrorParam（mp） / footIK が使えます");
             }
 
             // ブロック書き（{ は次の行でもOK）
@@ -481,10 +484,22 @@ namespace net.puk06.AnimScript
                         state.Speed = ParseExpression();
                         ExpectEndOfLine();
                     }
+                    else if (CheckKeyword("speedParam") || CheckKeyword("sp"))
+                    {
+                        Advance();
+                        state.SpeedParameter = ParseParameterName("再生速度用パラメータ名");
+                        ExpectEndOfLine();
+                    }
                     else if (CheckKeyword("cycleOffset") || CheckKeyword("co"))
                     {
                         Advance();
                         state.CycleOffset = ParseExpression();
+                        ExpectEndOfLine();
+                    }
+                    else if (CheckKeyword("cycleOffsetParam") || CheckKeyword("cop"))
+                    {
+                        Advance();
+                        state.CycleOffsetParameter = ParseParameterName("Cycle Offset 用パラメータ名");
                         ExpectEndOfLine();
                     }
                     else if (CheckKeyword("time"))
@@ -511,6 +526,12 @@ namespace net.puk06.AnimScript
                         state.Mirror = ParseOnOff("mirror");
                         ExpectEndOfLine();
                     }
+                    else if (CheckKeyword("mirrorParam") || CheckKeyword("mp"))
+                    {
+                        Advance();
+                        state.MirrorParameter = ParseParameterName("ミラー用パラメータ名");
+                        ExpectEndOfLine();
+                    }
                     else if (CheckKeyword("footIK"))
                     {
                         Advance();
@@ -523,7 +544,7 @@ namespace net.puk06.AnimScript
                     }
                     else
                     {
-                        throw Error(Current, $"ステート内では clip / speed / cycleOffset（co） / time / wd（writeDefault） / loop / mirror / footIK / driver が使えます。「{Current.Describe()}」は使えません");
+                        throw Error(Current, $"ステート内では clip / speed / speedParam（sp） / cycleOffset（co） / cycleOffsetParam（cop） / time / wd（writeDefault） / loop / mirror / mirrorParam（mp） / footIK / driver が使えます。「{Current.Describe()}」は使えません");
                     }
                 }
                 catch (ParseException)
@@ -911,5 +932,8 @@ namespace net.puk06.AnimScript
             if (CheckKeyword("off")) { Advance(); return false; }
             throw Error(Current, $"{optionName} には on または off を指定してください");
         }
+
+        string ParseParameterName(string what)
+            => Expect(TokenKind.Identifier, what).Text;
     }
 }

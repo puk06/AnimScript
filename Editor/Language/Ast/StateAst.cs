@@ -28,13 +28,19 @@ namespace net.puk06.AnimScript
         public string ClipPath { get; set; }
 
         public ExprAst Speed { get; set; }
+        /// <summary>再生速度を制御するパラメータ名。未指定なら無効。</summary>
+        public string SpeedParameter { get; set; }
         /// <summary>クリップの再生開始位置。</summary>
         public ExprAst CycleOffset { get; set; }
+        /// <summary>クリップの再生開始位置を制御するパラメータ名。未指定なら無効。</summary>
+        public string CycleOffsetParameter { get; set; }
         /// <summary>Motion Time を制御するパラメータ名。未指定なら無効。</summary>
         public string TimeParameter { get; set; }
         public bool? WriteDefaults { get; set; }
         public bool? Loop { get; set; }
         public bool? Mirror { get; set; }
+        /// <summary>ミラー再生を制御するパラメータ名。未指定なら無効。</summary>
+        public string MirrorParameter { get; set; }
         public bool? FootIK { get; set; }
 
         /// <summary>VRC Parameter Driver ブロック。無ければ null。</summary>

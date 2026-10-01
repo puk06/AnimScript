@@ -259,12 +259,18 @@ namespace net.puk06.AnimScript
             writer.Line(clipRef != null ? $"clip \"{clipRef}\"" : "clip none");
             if (state.speed != 1f)
                 writer.Line($"speed {ScriptTextWriter.Format(state.speed)}");
+            if (state.speedParameterActive)
+                writer.Line($"speedParam {NameSanitizer.SanitizeQuiet(state.speedParameter)}");
             if (state.cycleOffset != 0f)
                 writer.Line($"cycleOffset {ScriptTextWriter.Format(state.cycleOffset)}");
+            if (state.cycleOffsetParameterActive)
+                writer.Line($"cycleOffsetParam {NameSanitizer.SanitizeQuiet(state.cycleOffsetParameter)}");
             if (state.timeParameterActive)
                 writer.Line($"time {state.timeParameter}");
             if (state.mirror)
                 writer.Line("mirror on");
+            if (state.mirrorParameterActive)
+                writer.Line($"mirrorParam {NameSanitizer.SanitizeQuiet(state.mirrorParameter)}");
             if (state.iKOnFeet)
                 writer.Line("footIK on");
             if (!uniformWriteDefaults)
@@ -284,12 +290,18 @@ namespace net.puk06.AnimScript
         /// <summary>state のインラインオプションを付ける。</summary>
         static void AppendInlineOptions(StringBuilder line, AnimatorState state, bool uniformWriteDefaults)
         {
+            if (state.speedParameterActive)
+                line.Append($" speedParam {NameSanitizer.SanitizeQuiet(state.speedParameter)}");
             if (state.speed != 1f)
                 line.Append($" speed {ScriptTextWriter.Format(state.speed)}");
+            if (state.cycleOffsetParameterActive)
+                line.Append($" cycleOffsetParam {NameSanitizer.SanitizeQuiet(state.cycleOffsetParameter)}");
             if (state.cycleOffset != 0f)
                 line.Append($" cycleOffset {ScriptTextWriter.Format(state.cycleOffset)}");
             if (state.timeParameterActive)
                 line.Append($" time {state.timeParameter}");
+            if (state.mirrorParameterActive)
+                line.Append($" mirrorParam {NameSanitizer.SanitizeQuiet(state.mirrorParameter)}");
             if (state.mirror)
                 line.Append(" mirror on");
             if (state.iKOnFeet)
