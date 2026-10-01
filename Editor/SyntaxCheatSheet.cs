@@ -23,12 +23,15 @@ layer ""Locomotion"" default wd off {
 
 ■ ステート
 state Idle = ""Idle.anim""           ← クリップを1行で
-state Walk = ""Walk.anim"" speed 1.2 wd off loop on
+state Walk = ""Walk.anim"" speed 1.2 time MotionTime mirror on footIK on wd off loop on
 state Empty                          ← 空ステート（motion 無し）
 
 state Pose {
     clip ""Pose.anim""    （または clip none）
     speed 1.0
+    time MotionTime
+    mirror on
+    footIK on
     wd off
     loop on
     driver localOnly {

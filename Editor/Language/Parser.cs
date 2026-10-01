@@ -441,9 +441,12 @@ namespace net.puk06.AnimScript
                    && !IsAtEnd)
             {
                 if (CheckKeyword("speed")) { Advance(); state.Speed = ParseExpression(); }
+                else if (CheckKeyword("time")) { Advance(); state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text; }
                 else if (CheckKeyword("wd")) { Advance(); state.WriteDefaults = ParseOnOff("wd"); }
                 else if (CheckKeyword("loop")) { Advance(); state.Loop = ParseOnOff("loop"); }
-                else throw Error(Current, $"不明なステートオプション「{Current.Describe()}」です。speed / wd / loop が使えます");
+                else if (CheckKeyword("mirror")) { Advance(); state.Mirror = ParseOnOff("mirror"); }
+                else if (CheckKeyword("footIK")) { Advance(); state.FootIK = ParseOnOff("footIK"); }
+                else throw Error(Current, $"不明なステートオプション「{Current.Describe()}」です。speed / time / wd / loop / mirror / footIK が使えます");
             }
 
             // ブロック書き（{ は次の行でもOK）
@@ -477,6 +480,12 @@ namespace net.puk06.AnimScript
                         state.Speed = ParseExpression();
                         ExpectEndOfLine();
                     }
+                    else if (CheckKeyword("time"))
+                    {
+                        Advance();
+                        state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text;
+                        ExpectEndOfLine();
+                    }
                     else if (CheckKeyword("wd"))
                     {
                         Advance();
@@ -489,13 +498,25 @@ namespace net.puk06.AnimScript
                         state.Loop = ParseOnOff("loop");
                         ExpectEndOfLine();
                     }
+                    else if (CheckKeyword("mirror"))
+                    {
+                        Advance();
+                        state.Mirror = ParseOnOff("mirror");
+                        ExpectEndOfLine();
+                    }
+                    else if (CheckKeyword("footIK"))
+                    {
+                        Advance();
+                        state.FootIK = ParseOnOff("footIK");
+                        ExpectEndOfLine();
+                    }
                     else if (CheckKeyword("driver"))
                     {
                         state.Driver = ParseDriverBlock();
                     }
                     else
                     {
-                        throw Error(Current, $"ステート内では clip / speed / wd / loop / driver が使えます。「{Current.Describe()}」は使えません");
+                        throw Error(Current, $"ステート内では clip / speed / time / wd / loop / mirror / footIK / driver が使えます。「{Current.Describe()}」は使えません");
                     }
                 }
                 catch (ParseException)

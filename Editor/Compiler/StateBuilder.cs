@@ -24,6 +24,15 @@ namespace net.puk06.AnimScript
             if (ast.Speed != null)
                 state.Speed = (float)ast.Speed.Const();
 
+            if (ast.TimeParameter != null)
+                state.TimeParameter = ast.TimeParameter;
+
+            if (ast.Mirror.HasValue)
+                state.Mirror = ast.Mirror.Value;
+
+            if (ast.FootIK.HasValue)
+                state.IKOnFeet = ast.FootIK.Value;
+
             if (ast.Driver != null)
                 DriverBuilder.Build(state, ast.Driver, diagnostics);
 

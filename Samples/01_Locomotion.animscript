@@ -17,6 +17,7 @@
 
 // --- パラメータ宣言（Animator Controller の Parameters に追加される） ---
 param Speed    : float = 0
+param MotionTime : float = 0
 param Grounded : bool  = true
 param Jump     : bool  = false
 
@@ -27,7 +28,7 @@ layer "Locomotion" default wd on {
 
     // --- ステート（1行書き） ---
     state Idle = "Animations/Idle.anim"
-    state Walk = "Animations/Walk.anim"
+    state Walk = "Animations/Walk.anim" time MotionTime footIK on
     state Run  = "Animations/Run.anim" speed 1.1
     state JumpUp = "Animations/Jump.anim"
 

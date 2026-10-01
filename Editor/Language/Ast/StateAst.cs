@@ -8,6 +8,7 @@ namespace net.puk06.AnimScript
     /// state Empty              // motion 無しの空ステート
     /// state Pose {
     ///     clip "Pose.anim"
+    ///     time MotionTime
     ///     wd off
     ///     driver { ... }
     /// }
@@ -27,8 +28,12 @@ namespace net.puk06.AnimScript
         public string ClipPath { get; set; }
 
         public ExprAst Speed { get; set; }
+        /// <summary>Motion Time を制御するパラメータ名。未指定なら無効。</summary>
+        public string TimeParameter { get; set; }
         public bool? WriteDefaults { get; set; }
         public bool? Loop { get; set; }
+        public bool? Mirror { get; set; }
+        public bool? FootIK { get; set; }
 
         /// <summary>VRC Parameter Driver ブロック。無ければ null。</summary>
         public DriverBlockAst Driver { get; set; }

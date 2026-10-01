@@ -75,6 +75,9 @@ namespace net.puk06.AnimScript
             // driver のパラメータ存在チェック（警告どまり。VRCExpressionParameters 側で定義されている運用もあるため）
             foreach (var state in layer.States)
             {
+                if (state.TimeParameter != null && !declaredParams.Contains(state.TimeParameter))
+                    diagnostics.Warning(state.Location, $"time の対象パラメータ「{state.TimeParameter}」が param 宣言されていません");
+
                 if (state.Driver == null) continue;
                 foreach (var action in state.Driver.Actions)
                 {
