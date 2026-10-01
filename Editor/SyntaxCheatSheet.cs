@@ -24,10 +24,11 @@ layer ""Locomotion"" default wd off {
 ■ ステート
 state Idle = ""Idle.anim""           ← クリップを1行で
 state Walk = ""Walk.anim"" speed 1.2 cycleOffset 0.25 time MotionTime mirror on footIK on wd off loop on
+state Locomotion = ""BlendTrees/Locomotion.asset""  ← BlendTree はアセットパスで指定
 state Empty                          ← 空ステート（motion 無し）
 
 state Pose {
-    clip ""Pose.anim""    （または clip none）
+    clip ""Pose.anim""    （BlendTree の .asset も指定可。または clip none）
     speed 1.0
     cycleOffset 0.25
     （`co 0.25` と省略可）

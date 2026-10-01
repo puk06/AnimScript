@@ -60,7 +60,7 @@ namespace net.puk06.AnimScript
 
             EditorGUILayout.LabelField(
                 "既存の AnimatorController を .animscript に変換します。\n" +
-                "特殊な構造（BlendTree 等）はコメントや警告で明示されます。",
+                "特殊な構造（サブステートマシン等）はコメントや警告で明示されます。",
                 EditorStyles.wordWrappedMiniLabel);
 
             _importSource = EditorGUILayout.ObjectField(

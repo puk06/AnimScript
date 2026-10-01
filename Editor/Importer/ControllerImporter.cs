@@ -16,7 +16,7 @@ namespace net.puk06.AnimScript
     /// （同じ場所への遷移が複数あっても、そのまま複数行で書き出す。
     /// 　再度ビルドしても同じコントローラに戻る）
     ///
-    /// 未対応の要素（BlendTree・サブステートマシン・Trigger 型パラメータ）は
+    /// 未対応の要素（サブステートマシン・Trigger 型パラメータ）は
     /// コメントや警告で明示しつつ、無難な形に置き換える。
     /// </summary>
     internal static class ControllerImporter
@@ -224,18 +224,18 @@ namespace net.puk06.AnimScript
         }
 
         /// <summary>
-        /// クリップ参照文字列を返す。
+        /// モーション参照文字列を返す。
         /// スクリプトのフォルダ以下なら相対パス、それ以外は Assets/ からのパス。
-        /// motion 無し・未対応のモーション（BlendTree 等）なら null。
+        /// motion 無し・アセットとして保存されていないモーションなら null。
         /// </summary>
         static string GetClipReference(AnimatorState state, string scriptDirectory, List<string> warnings)
         {
             var motion = state.motion;
             if (motion == null) return null;
 
-            if (motion is AnimationClip clip)
+            if (motion is AnimationClip || motion is BlendTree)
             {
-                var path = AssetDatabase.GetAssetPath(clip);
+                var path = AssetDatabase.GetAssetPath(motion);
                 if (string.IsNullOrEmpty(path))
                 {
                     warnings.Add($"ステート「{state.name}」のクリップはアセットとして保存されていないため、スキップしました");
@@ -246,7 +246,7 @@ namespace net.puk06.AnimScript
                 return path.StartsWith(prefix) ? path.Substring(prefix.Length) : path;
             }
 
-            warnings.Add($"ステート「{state.name}」のモーション（{motion.GetType().Name}）は animscript 未対応のため、空ステートとして書き出しました");
+            warnings.Add($"ステート「{state.name}」のモーション（{motion.GetType().Name}）はアセットパスを取得できないため、空ステートとして書き出しました");
             return null;
         }
 

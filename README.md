@@ -95,6 +95,7 @@ layer "Locomotion" default wd on loop off weight 1.0 {
 ```txt
 state Idle = "Idle.anim"                  // クリップ指定
 state Walk = "Walk.anim" speed 1.2 cycleOffset 0.25 time MotionTime mirror on footIK on wd off // オプション付き
+state Locomotion = "BlendTrees/Locomotion.asset" // BlendTree もパスで指定可能
 state Empty                               // 空ステート（motion 無し）
 ```
 
@@ -102,7 +103,7 @@ state Empty                               // 空ステート（motion 無し）
 
 ```txt
 state Pose {
-    clip "Pose.anim"    // または clip none （明示的に空）
+    clip "Pose.anim"    // BlendTree の .asset も指定可能。空にする場合は clip none
     speed 1.0
     cycleOffset 0.25
     time MotionTime
@@ -293,7 +294,8 @@ for i in 0..3 {
 # 注意点・制限
 
 - キーワード（`state` `layer` `param` `for` `while` `entry` `exit` `any` `when` など）と同じ名前のステートは作れません
-- ブレンドツリー・サブステートマシンは未対応です
+- BlendTree は `.asset` などのアセットパスで指定できます（名前検索は AnimationClip のみ）
+- サブステートマシンは未対応です
 - `loop on/off` はクリップのアセット自体を変更します（他の Animator とも共有される点に注意）
 
 # コントローラから animscript へ逆変換（インポート）
@@ -314,7 +316,7 @@ AnimatorController (.controller)
 ## インポート時の注意
 
 - **for / while ループは復元されません**。展開された状態のまま `.animscript` に書き出されます
-- **BlendTree** は未対応のため、空ステートとして書き出されます
+- **BlendTree** はアセットパスを指定して書き出されます。保存されていない BlendTree は空ステートになります
 - **サブステートマシン** は未対応のため、警告が出てスキップされます
 - **Trigger 型パラメータ** は bool として書き出されます
 - **遷移時間が割合（%）指定**のものは秒指定に変換されません（警告が出ます）

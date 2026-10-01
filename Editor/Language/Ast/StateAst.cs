@@ -22,7 +22,7 @@ namespace net.puk06.AnimScript
         public bool HasClip { get; set; }
 
         /// <summary>
-        /// クリップ参照文字列（パスまたは名前。$変数を含むことがある）。
+        /// モーション参照文字列（AnimationClip のパスまたは名前、BlendTree のパス。$変数を含むことがある）。
         /// HasClip == true でも null の場合は `clip none`（明示的な空）。
         /// </summary>
         public string ClipPath { get; set; }

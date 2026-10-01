@@ -51,20 +51,20 @@ namespace net.puk06.AnimScript
         static void BuildInto(AnimScriptAst ast, string scriptAssetPath,
             VirtualAnimatorController controller, CloneContext cloneContext, DiagnosticBag diagnostics)
         {
-            // --- クリップ解決（AnimationClip → VirtualClip） ---
-            var clipMap = new Dictionary<StateAst, VirtualClip>();
+            // --- モーション解決（AnimationClip / BlendTree → VirtualMotion） ---
+            var motionMap = new Dictionary<StateAst, VirtualMotion>();
             foreach (var layer in ast.Layers)
             foreach (var state in layer.States)
             {
                 if (!state.HasClip || state.ClipPath == null) continue;
 
-                var clip = ClipResolver.Resolve(state.ClipPath, scriptAssetPath, state.Location, diagnostics);
-                if (clip != null)
-                    clipMap[state] = cloneContext.Clone(clip)!;
+                var motion = ClipResolver.Resolve(state.ClipPath, scriptAssetPath, state.Location, diagnostics);
+                if (motion != null)
+                    motionMap[state] = cloneContext.Clone(motion)!;
             }
 
             // --- loop on/off は VirtualClip（クローン）に対して適用 ---
-            ApplyLoopSettings(ast, clipMap, diagnostics);
+            ApplyLoopSettings(ast, motionMap, diagnostics);
 
             // --- パラメータ ---
             foreach (var parameterAst in ast.Parameters)
@@ -76,7 +76,7 @@ namespace net.puk06.AnimScript
                 var layer = controller.AddLayer(LayerPriority.Default, layerAst.Name);
                 layer.DefaultWeight = (float)(layerAst.Weight?.Const() ?? 1.0);
 
-                LayerBuilder.Build(layer, layerAst, clipMap, diagnostics);
+                LayerBuilder.Build(layer, layerAst, motionMap, diagnostics);
             }
         }
 
@@ -85,7 +85,7 @@ namespace net.puk06.AnimScript
         // ================================================================
 
         static void ApplyLoopSettings(AnimScriptAst ast,
-            IReadOnlyDictionary<StateAst, VirtualClip> clipMap, DiagnosticBag diagnostics)
+            IReadOnlyDictionary<StateAst, VirtualMotion> motionMap, DiagnosticBag diagnostics)
         {
             var loopByClip = new Dictionary<VirtualClip, bool>();
 
@@ -94,7 +94,8 @@ namespace net.puk06.AnimScript
             {
                 var loop = state.Loop ?? layer.Loop;
                 if (!loop.HasValue) continue;
-                if (!clipMap.TryGetValue(state, out var clip)) continue;
+                if (!motionMap.TryGetValue(state, out var motion)) continue;
+                if (!(motion is VirtualClip clip)) continue;
 
                 if (loopByClip.TryGetValue(clip, out var existing) && existing != loop.Value)
                 {

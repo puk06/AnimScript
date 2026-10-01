@@ -10,13 +10,13 @@ namespace net.puk06.AnimScript
     internal static class StateBuilder
     {
         public static VirtualState Build(VirtualStateMachine stateMachine, StateAst ast, LayerAst layer,
-            IReadOnlyDictionary<StateAst, VirtualClip> clipMap, DiagnosticBag diagnostics)
+            IReadOnlyDictionary<StateAst, VirtualMotion> motionMap, DiagnosticBag diagnostics)
         {
             var state = stateMachine.AddState(ast.Name);
 
             // motion（clip none / 未指定なら null のまま = 空ステート）
-            if (ast.HasClip && ast.ClipPath != null && clipMap.TryGetValue(ast, out var clip))
-                state.Motion = clip;
+            if (ast.HasClip && ast.ClipPath != null && motionMap.TryGetValue(ast, out var motion))
+                state.Motion = motion;
 
             // WriteDefaults: ステート指定 → レイヤー指定 → Unity標準(true)
             state.WriteDefaultValues = ast.WriteDefaults ?? layer.WriteDefaults ?? true;

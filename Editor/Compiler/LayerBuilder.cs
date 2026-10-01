@@ -11,7 +11,7 @@ namespace net.puk06.AnimScript
     internal static class LayerBuilder
     {
         public static void Build(VirtualLayer layer, LayerAst layerAst,
-            IReadOnlyDictionary<StateAst, VirtualClip> clipMap, DiagnosticBag diagnostics)
+            IReadOnlyDictionary<StateAst, VirtualMotion> motionMap, DiagnosticBag diagnostics)
         {
             var stateMachine = layer.StateMachine
                                ?? throw new System.InvalidOperationException("VirtualLayer.StateMachine が null です");
@@ -20,7 +20,7 @@ namespace net.puk06.AnimScript
             var states = new Dictionary<string, VirtualState>();
             foreach (var stateAst in layerAst.States)
             {
-                var state = StateBuilder.Build(stateMachine, stateAst, layerAst, clipMap, diagnostics);
+                var state = StateBuilder.Build(stateMachine, stateAst, layerAst, motionMap, diagnostics);
                 states[stateAst.Name] = state;
             }
 
