@@ -132,6 +132,7 @@ state Pose {
 | `loop on/off` | このクリップの Loop Time ※レイヤー指定より優先 |
 | `driver { }` | VRC Parameter Driver（下記） |
 | `playableLayerControl { }` | VRC Playable Layer Control |
+| `animatorLayerControl { }` | VRC Animator Layer Control |
 | `trackingControl { }` | VRC Animator Tracking Control |
 
 `{` は次の行に書いても OK（Allman スタイル）です。
@@ -181,6 +182,17 @@ state Control {
 ```
 
 `layer` は `Action` / `FX` / `Gesture` / `Additive`、tracking の値は `NoChange` / `Tracking` / `Animation` です。trackingControl の未指定項目は SDK の既定値（NoChange）のままになります。
+
+`VRCAnimatorLayerControl` は `playable` で対象Playable Layer、`layer` でサブレイヤー番号を指定します。
+
+```txt
+animatorLayerControl {
+    playable FX
+    layer 1
+    goalWeight 1
+    blendDuration 0.25
+}
+```
 
 ## 遷移（->）
 

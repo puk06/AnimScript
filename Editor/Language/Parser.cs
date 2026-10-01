@@ -540,10 +540,11 @@ namespace net.puk06.AnimScript
                     }
                     else if (CheckKeyword("driver")) state.Drivers.Add(ParseDriverBlock());
                     else if (CheckKeyword("playableLayerControl")) state.PlayableLayerControls.Add(ParsePlayableLayerControl());
+                    else if (CheckKeyword("animatorLayerControl")) state.AnimatorLayerControls.Add(ParseAnimatorLayerControl());
                     else if (CheckKeyword("trackingControl")) state.AnimatorTrackingControls.Add(ParseAnimatorTrackingControl());
                     else
                     {
-                        throw Error(Current, $"ステート内では clip / speed / speedParam（sp） / cycleOffset（co） / cycleOffsetParam（cop） / time / wd（writeDefault） / loop / mirror / mirrorParam（mp） / footIK / driver / playableLayerControl / trackingControl が使えます。「{Current.Describe()}」は使えません");
+                        throw Error(Current, $"ステート内では clip / speed / speedParam（sp） / cycleOffset（co） / cycleOffsetParam（cop） / time / wd（writeDefault） / loop / mirror / mirrorParam（mp） / footIK / driver / playableLayerControl / animatorLayerControl / trackingControl が使えます。「{Current.Describe()}」は使えません");
                     }
                 }
                 catch (ParseException)
@@ -630,6 +631,31 @@ namespace net.puk06.AnimScript
                 var item = Expect(TokenKind.Identifier, "tracking 項目名");
                 var value = Expect(TokenKind.Identifier, "NoChange / Tracking / Animation");
                 control.Settings[item.Text] = value.Text;
+                ExpectEndOfLine();
+            }
+            Expect(TokenKind.CloseBrace, "「}」");
+            return control;
+        }
+
+        AnimatorLayerControlAst ParseAnimatorLayerControl()
+        {
+            var keyword = Advance();
+            var control = new AnimatorLayerControlAst { Location = keyword.Location };
+            ExpectBlockStart();
+            Expect(TokenKind.OpenBrace, "「{」");
+            while (!IsAtEnd && Current.Kind != TokenKind.CloseBrace)
+            {
+                SkipNewlines();
+                if (IsAtEnd || Current.Kind == TokenKind.CloseBrace) break;
+                var item = Expect(TokenKind.Identifier, "playable / layer / goalWeight / blendDuration");
+                switch (item.Text)
+                {
+                    case "playable": control.Playable = Expect(TokenKind.Identifier, "レイヤー名").Text; break;
+                    case "layer": control.Layer = ParseExpression(); break;
+                    case "goalWeight": control.GoalWeight = ParseExpression(); break;
+                    case "blendDuration": control.BlendDuration = ParseExpression(); break;
+                    default: throw Error(item, $"不明な animatorLayerControl 項目「{item.Text}」です");
+                }
                 ExpectEndOfLine();
             }
             Expect(TokenKind.CloseBrace, "「}」");

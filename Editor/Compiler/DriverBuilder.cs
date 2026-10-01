@@ -87,6 +87,27 @@ namespace net.puk06.AnimScript
 #endif
         }
 
+        public static void Build(VirtualState state, AnimatorLayerControlAst block, DiagnosticBag diagnostics)
+        {
+#if VRC_SDK_VRCSDK3
+            if (!System.Enum.TryParse<VRC_AnimatorLayerControl.BlendableLayer>(block.Playable, out var playable))
+            {
+                diagnostics.Error(block.Location, $"不明なAnimator Layer「{block.Playable}」です（Action / FX / Gesture / Additive）");
+                return;
+            }
+            var control = ScriptableObject.CreateInstance<VRCAnimatorLayerControl>();
+            control.name = "VRCAnimatorLayerControl";
+            control.playable = playable;
+            control.layer = block.Layer == null ? 1 : (int)block.Layer.Const();
+            control.goalWeight = block.GoalWeight == null ? 1f : (float)block.GoalWeight.Const();
+            control.blendDuration = block.BlendDuration == null ? 0f : (float)block.BlendDuration.Const();
+            control.debugString = "AnimScriptBuilder: animatorLayerControl";
+            state.Behaviours = state.Behaviours.Add(control);
+#else
+            diagnostics.Warning(block.Location, "VRC SDK (Avatar 3.0) が見つからないため、animatorLayerControl ブロックはスキップされました");
+#endif
+        }
+
 #if VRC_SDK_VRCSDK3
         static VRC_AvatarParameterDriver.Parameter BuildParameter(DriverActionAst action)
         {

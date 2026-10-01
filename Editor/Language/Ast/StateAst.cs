@@ -47,6 +47,7 @@ namespace net.puk06.AnimScript
 
         public List<DriverBlockAst> Drivers { get; } = new List<DriverBlockAst>();
         public List<PlayableLayerControlAst> PlayableLayerControls { get; } = new List<PlayableLayerControlAst>();
+        public List<AnimatorLayerControlAst> AnimatorLayerControls { get; } = new List<AnimatorLayerControlAst>();
         public List<AnimatorTrackingControlAst> AnimatorTrackingControls { get; } = new List<AnimatorTrackingControlAst>();
 
         public SourceLocation Location { get; set; }

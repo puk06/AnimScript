@@ -21,6 +21,15 @@ namespace net.puk06.AnimScript
                 lines.Add($"blendDuration {ScriptTextWriter.Format(control.blendDuration)}");
                 lines.Add("}");
             }
+            foreach (var control in state.behaviours.OfType<VRCAnimatorLayerControl>())
+            {
+                lines.Add("animatorLayerControl {");
+                lines.Add($"playable {control.playable}");
+                lines.Add($"layer {control.layer}");
+                lines.Add($"goalWeight {ScriptTextWriter.Format(control.goalWeight)}");
+                lines.Add($"blendDuration {ScriptTextWriter.Format(control.blendDuration)}");
+                lines.Add("}");
+            }
             foreach (var control in state.behaviours.OfType<VRCAnimatorTrackingControl>())
             {
                 lines.Add("trackingControl {");

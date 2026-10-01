@@ -277,6 +277,15 @@ namespace net.puk06.AnimScript
                     BlendDuration = ExpandExpr(control.BlendDuration, scope),
                     Location = control.Location,
                 });
+            foreach (var control in source.AnimatorLayerControls)
+                state.AnimatorLayerControls.Add(new AnimatorLayerControlAst
+                {
+                    Playable = ExpandText(control.Playable, scope, control.Location),
+                    Layer = ExpandExpr(control.Layer, scope),
+                    GoalWeight = ExpandExpr(control.GoalWeight, scope),
+                    BlendDuration = ExpandExpr(control.BlendDuration, scope),
+                    Location = control.Location,
+                });
             foreach (var control in source.AnimatorTrackingControls)
             {
                 var expanded = new AnimatorTrackingControlAst { Location = control.Location };

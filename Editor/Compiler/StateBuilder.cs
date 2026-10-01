@@ -49,6 +49,8 @@ namespace net.puk06.AnimScript
                 DriverBuilder.Build(state, driver, diagnostics);
             foreach (var control in ast.PlayableLayerControls)
                 DriverBuilder.Build(state, control, diagnostics);
+            foreach (var control in ast.AnimatorLayerControls)
+                DriverBuilder.Build(state, control, diagnostics);
             foreach (var control in ast.AnimatorTrackingControls)
                 DriverBuilder.Build(state, control, diagnostics);
 
