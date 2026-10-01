@@ -11,7 +11,7 @@ namespace net.puk06.AnimScript
     /// </summary>
     internal static class ImportMenuItem
     {
-        const string MenuPath = "Assets/AnimScript/animscript に変換";
+        const string MenuPath = "Assets/AnimScript/AnimScriptに変換";
 
         [MenuItem(MenuPath, true)]
         static bool Validate()
