@@ -184,6 +184,12 @@ namespace net.puk06.AnimScript
             writer.Line(clipRef != null ? $"clip \"{clipRef}\"" : "clip none");
             if (state.speed != 1f)
                 writer.Line($"speed {ScriptTextWriter.Format(state.speed)}");
+            if (state.timeParameterActive)
+                writer.Line($"time {state.timeParameter}");
+            if (state.mirror)
+                writer.Line("mirror on");
+            if (state.iKOnFeet)
+                writer.Line("footIK on");
             if (!uniformWriteDefaults)
                 writer.Line(state.writeDefaultValues ? "wd on" : "wd off");
 
@@ -198,11 +204,17 @@ namespace net.puk06.AnimScript
             writer.Line("}");
         }
 
-        /// <summary>speed / wd のインラインオプションを付ける。</summary>
+        /// <summary>state のインラインオプションを付ける。</summary>
         static void AppendInlineOptions(StringBuilder line, AnimatorState state, bool uniformWriteDefaults)
         {
             if (state.speed != 1f)
                 line.Append($" speed {ScriptTextWriter.Format(state.speed)}");
+            if (state.timeParameterActive)
+                line.Append($" time {state.timeParameter}");
+            if (state.mirror)
+                line.Append(" mirror on");
+            if (state.iKOnFeet)
+                line.Append(" footIK on");
             if (!uniformWriteDefaults)
                 line.Append(state.writeDefaultValues ? " wd on" : " wd off");
         }
