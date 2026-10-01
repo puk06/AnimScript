@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Animations;
 #if VRC_SDK_VRCSDK3
-using VRC.SDKBase;
+using VRC.SDK3.Avatars.Components;
 #endif
 
 namespace net.puk06.AnimScript
@@ -13,7 +13,7 @@ namespace net.puk06.AnimScript
         {
             var lines = new List<string>();
 #if VRC_SDK_VRCSDK3
-            foreach (var control in state.behaviours.OfType<VRC_PlayableLayerControl>())
+            foreach (var control in state.behaviours.OfType<VRCPlayableLayerControl>())
             {
                 lines.Add("playableLayerControl {");
                 lines.Add($"layer {control.layer}");
@@ -21,7 +21,7 @@ namespace net.puk06.AnimScript
                 lines.Add($"blendDuration {ScriptTextWriter.Format(control.blendDuration)}");
                 lines.Add("}");
             }
-            foreach (var control in state.behaviours.OfType<VRC_AnimatorTrackingControl>())
+            foreach (var control in state.behaviours.OfType<VRCAnimatorTrackingControl>())
             {
                 lines.Add("trackingControl {");
                 lines.Add($"head {control.trackingHead}");
