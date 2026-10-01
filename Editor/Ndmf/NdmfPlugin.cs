@@ -91,7 +91,8 @@ namespace net.puk06.AnimScript.Editor.Ndmf
 
                 var animator = pucoco.gameObject.AddComponent<ModularAvatarMergeAnimator>();
                 animator.layerType = pucoco.LayerType;
-                animator.pathMode = MergeAnimatorPathMode.Absolute;
+                animator.pathMode = pucoco.pathMode;
+                animator.relativePathRoot = pucoco.relativePathRoot;
                 animator.layerPriority = pucoco.LayerPriority;
                 animator.mergeAnimatorMode = pucoco.MergeAnimatorMode;
                 animator.matchAvatarWriteDefaults = pucoco.MatchAvatarWriteDefaults;

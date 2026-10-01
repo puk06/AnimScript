@@ -3,7 +3,8 @@
   "displayName": "AnimScript",
   "version": "0.4.0",
   "vpmDependencies": {
-    "nadena.dev.ndmf": ">=1.5.0"
+    "nadena.dev.ndmf": ">=1.11.0",
+    "nadena.dev.modular-avatar": ">=1.13.0"
   },
   "author": {
     "name": "Pukorufu",

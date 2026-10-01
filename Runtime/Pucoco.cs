@@ -12,6 +12,8 @@ namespace net.puk06.AnimScript
     {
         public UnityEngine.Object? ScriptFile;
         public VRCAvatarDescriptor.AnimLayerType LayerType = VRCAvatarDescriptor.AnimLayerType.FX;
+        public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
+        public AvatarObjectReference relativePathRoot = new AvatarObjectReference();
         public int LayerPriority = 0;
         public MergeAnimatorMode MergeAnimatorMode = MergeAnimatorMode.Append;
         public bool MatchAvatarWriteDefaults = true;

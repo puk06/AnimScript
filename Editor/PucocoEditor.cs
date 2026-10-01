@@ -10,6 +10,8 @@ namespace net.puk06.AnimScript
     {
         SerializedProperty _scriptFile;
         SerializedProperty _layerType;
+        SerializedProperty _pathMode;
+        SerializedProperty _relativePathRoot;
         SerializedProperty _layerPriority;
         SerializedProperty _mergeAnimatorMode;
         SerializedProperty _matchAvatarWriteDefaults;
@@ -18,6 +20,8 @@ namespace net.puk06.AnimScript
         {
             _scriptFile = serializedObject.FindProperty(nameof(Pucoco.ScriptFile));
             _layerType = serializedObject.FindProperty(nameof(Pucoco.LayerType));
+            _pathMode = serializedObject.FindProperty(nameof(Pucoco.pathMode));
+            _relativePathRoot = serializedObject.FindProperty(nameof(Pucoco.relativePathRoot));
             _layerPriority = serializedObject.FindProperty(nameof(Pucoco.LayerPriority));
             _mergeAnimatorMode = serializedObject.FindProperty(nameof(Pucoco.MergeAnimatorMode));
             _matchAvatarWriteDefaults = serializedObject.FindProperty(nameof(Pucoco.MatchAvatarWriteDefaults));
@@ -32,8 +36,10 @@ namespace net.puk06.AnimScript
             DrawScriptFile();
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("ビルド設定", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("ビルド設定 (MA Merge Animator)", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_layerType, new GUIContent("レイヤー種別"));
+            EditorGUILayout.PropertyField(_pathMode, new GUIContent("パスモード"));
+            EditorGUILayout.PropertyField(_relativePathRoot, new GUIContent("相対パスのルート"));
             EditorGUILayout.PropertyField(_layerPriority, new GUIContent("レイヤーの優先度"));
             EditorGUILayout.PropertyField(_mergeAnimatorMode, new GUIContent("統合モード"));
             EditorGUILayout.PropertyField(_matchAvatarWriteDefaults,
