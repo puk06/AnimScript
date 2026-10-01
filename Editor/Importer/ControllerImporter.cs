@@ -16,8 +16,8 @@ namespace net.puk06.AnimScript
     /// （同じ場所への遷移が複数あっても、そのまま複数行で書き出す。
     /// 　再度ビルドしても同じコントローラに戻る）
     ///
-    /// 未対応の要素（サブステートマシン・Trigger 型パラメータ）は
-    /// コメントや警告で明示しつつ、無難な形に置き換える。
+    /// サブステートマシンは通常ステートへ展開し、境界をコメントで明示する。
+    /// その他の未対応要素（Trigger 型パラメータ等）は警告しつつ、無難な形に置き換える。
     /// </summary>
     internal static class ControllerImporter
     {
@@ -98,14 +98,7 @@ namespace net.puk06.AnimScript
             string scriptDirectory, List<string> warnings)
         {
             var stateMachine = layer.stateMachine;
-
-            // 見やすさのため、画面上の位置順（上→下、左→右）に並べる
-            var children = stateMachine.states
-                .OrderBy(child => child.position.y)
-                .ThenBy(child => child.position.x)
-                .ToArray();
-
-            // WriteDefaults がレイヤー内で揃っているか調べる
+            var children = stateMachine.states.ToArray();
             var uniformWriteDefaults = children.Length > 0
                 && children.All(child => child.state.writeDefaultValues == children[0].state.writeDefaultValues);
 
@@ -120,41 +113,123 @@ namespace net.puk06.AnimScript
             writer.Line(header.ToString());
             writer.Indent();
 
-            // --- ステート ---
-            // 変換後の名前の対応表（遷移の参照で使う）
-            var stateNames = new Dictionary<string, string>();
+            // 先に全ステートへ名前を割り当て、サブステートを通常ステートへ展開する。
+            var stateNames = new Dictionary<AnimatorState, string>();
             var usedNames = new HashSet<string>();
+            CollectNames(stateMachine, stateNames, usedNames, warnings);
+            WriteFlattenedStates(writer, stateMachine, stateMachine, stateNames,
+                uniformWriteDefaults, scriptDirectory, warnings);
 
-            foreach (var child in children)
+            var entryState = FindEntryState(stateMachine);
+            if (entryState != null)
             {
-                var state = child.state;
-                var outName = NameSanitizer.SanitizeUnique(state.name, usedNames, warnings);
-                stateNames[state.name] = outName;
-                WriteState(writer, state, outName, uniformWriteDefaults, scriptDirectory, warnings);
-            }
-
-            if (children.Length > 0)
                 writer.Line();
-
-            // --- デフォルトステート ---
-            if (stateMachine.defaultState != null)
-            {
-                writer.Line($"entry -> {stateNames[stateMachine.defaultState.name]}");
-                writer.Line();
+                writer.Line($"entry -> {stateNames[entryState]}");
             }
 
-            // --- 遷移（AnyState → 各ステートの順） ---
-            foreach (var transition in stateMachine.anyStateTransitions)
-                WriteTransition(writer, "any", transition, stateNames, warnings);
-
-            foreach (var child in children)
-            {
-                foreach (var transition in child.state.transitions)
-                    WriteTransition(writer, stateNames[child.state.name], transition, stateNames, warnings);
-            }
+            WriteFlattenedTransitions(writer, stateMachine, stateMachine, stateNames, warnings);
 
             writer.Unindent();
             writer.Line("}");
+        }
+
+        static void CollectNames(AnimatorStateMachine stateMachine,
+            Dictionary<AnimatorState, string> stateNames,
+            HashSet<string> usedNames, List<string> warnings)
+        {
+            foreach (var child in stateMachine.states)
+            {
+                if (child.state != null)
+                    stateNames[child.state] = NameSanitizer.SanitizeUnique(child.state.name, usedNames, warnings);
+            }
+
+            foreach (var child in stateMachine.stateMachines)
+                if (child.stateMachine != null)
+                    CollectNames(child.stateMachine, stateNames, usedNames, warnings);
+        }
+
+        static void WriteFlattenedStates(ScriptTextWriter writer, AnimatorStateMachine root,
+            AnimatorStateMachine current, Dictionary<AnimatorState, string> stateNames,
+            bool rootUniformWriteDefaults, string scriptDirectory, List<string> warnings)
+        {
+            foreach (var child in current.states
+                         .OrderBy(child => child.position.y)
+                         .ThenBy(child => child.position.x))
+            {
+                var uniform = current == root ? rootUniformWriteDefaults : false;
+                WriteState(writer, child.state, stateNames[child.state], uniform, scriptDirectory, warnings);
+            }
+
+            foreach (var child in current.stateMachines
+                         .OrderBy(child => child.position.y)
+                         .ThenBy(child => child.position.x))
+            {
+                writer.Line();
+                writer.Comment($"ここから先はサブステート「{child.stateMachine.name}」の内部です");
+                WriteFlattenedStates(writer, root, child.stateMachine, stateNames,
+                    rootUniformWriteDefaults, scriptDirectory, warnings);
+                writer.Comment("サブステート終了です");
+            }
+        }
+
+        static AnimatorState FindEntryState(AnimatorStateMachine stateMachine)
+        {
+            if (stateMachine.defaultState != null) return stateMachine.defaultState;
+
+            foreach (var transition in stateMachine.entryTransitions)
+            {
+                if (transition.destinationState != null) return transition.destinationState;
+                if (transition.destinationStateMachine != null)
+                {
+                    var nested = FindEntryState(transition.destinationStateMachine);
+                    if (nested != null) return nested;
+                }
+            }
+
+            return null;
+        }
+
+        static void WriteFlattenedTransitions(ScriptTextWriter writer,
+            AnimatorStateMachine root, AnimatorStateMachine current,
+            Dictionary<AnimatorState, string> stateNames, List<string> warnings)
+        {
+            foreach (var transition in current.anyStateTransitions)
+                WriteFlattenedTransition(writer, "any", transition, stateNames, warnings);
+
+            foreach (var child in current.states)
+            {
+                foreach (var transition in child.state.transitions)
+                {
+                    // サブステート内の Exit は、親のステートマシン遷移で展開する。
+                    if (transition.isExit && current != root) continue;
+                    WriteFlattenedTransition(writer, stateNames[child.state], transition, stateNames, warnings);
+                }
+            }
+
+            foreach (var child in current.stateMachines)
+            {
+                foreach (var transition in current.GetStateMachineTransitions(child.stateMachine))
+                {
+                    var exitStates = new List<AnimatorState>();
+                    CollectExitStates(child.stateMachine, exitStates);
+                    foreach (var exitState in exitStates)
+                        WriteFlattenedMachineTransition(writer, stateNames[exitState], transition,
+                            stateNames, warnings);
+                }
+
+                WriteFlattenedTransitions(writer, root, child.stateMachine, stateNames, warnings);
+            }
+        }
+
+        static void CollectExitStates(AnimatorStateMachine stateMachine, List<AnimatorState> result)
+        {
+            foreach (var child in stateMachine.states)
+                if (child.state.transitions.Any(transition => transition.isExit))
+                    result.Add(child.state);
+
+            foreach (var child in stateMachine.stateMachines)
+                if (stateMachine.GetStateMachineTransitions(child.stateMachine).Any(transition => transition.isExit))
+                    CollectExitStates(child.stateMachine, result);
         }
 
         // ================================================================
@@ -254,40 +329,87 @@ namespace net.puk06.AnimScript
         // 遷移
         // ================================================================
 
-        static void WriteTransition(ScriptTextWriter writer, string fromName,
-            AnimatorStateTransition transition, Dictionary<string, string> stateNames, List<string> warnings)
+        static void WriteFlattenedTransition(ScriptTextWriter writer, string fromName,
+            AnimatorStateTransition transition, Dictionary<AnimatorState, string> stateNames,
+            List<string> warnings)
         {
             string toName;
             if (transition.isExit)
             {
                 toName = "exit";
             }
-            else if (transition.destinationState != null)
+            else if (transition.destinationState != null
+                     && stateNames.TryGetValue(transition.destinationState, out var stateName))
             {
-                toName = stateNames[transition.destinationState.name];
+                toName = stateName;
+            }
+            else if (transition.destinationStateMachine != null)
+            {
+                var entryState = FindEntryState(transition.destinationStateMachine);
+                if (entryState == null || !stateNames.TryGetValue(entryState, out toName))
+                {
+                    warnings.Add($"「{fromName}」からのサブステート遷移先を解決できないため、スキップしました");
+                    return;
+                }
             }
             else
             {
-                warnings.Add($"「{fromName}」からステートマシンへの遷移は未対応のため、スキップしました");
+                warnings.Add($"「{fromName}」からの遷移先を解決できないため、スキップしました");
                 return;
             }
 
             var line = new StringBuilder($"{fromName} -> {toName}");
-
-            // 条件（1つの遷移の条件は AND なので and でつなぐ。
-            // 同じ場所への遷移が複数ある場合＝OR だが、そのまま複数行で書き出す）
             if (transition.conditions.Length > 0)
+                line.Append(" when ").Append(string.Join(" and ", transition.conditions.Select(FormatCondition)));
+            if (fromName == "any" && transition.canTransitionToSelf)
+                line.Append(" self");
+            AppendTransitionOptions(line, transition, warnings, fromName, toName);
+            writer.Line(line.ToString());
+        }
+
+        static void WriteFlattenedMachineTransition(ScriptTextWriter writer, string fromName,
+            AnimatorTransition transition, Dictionary<AnimatorState, string> stateNames,
+            List<string> warnings)
+        {
+            string toName;
+            if (transition.isExit)
             {
-                var conditions = transition.conditions.Select(FormatCondition);
-                line.Append(" when ").Append(string.Join(" and ", conditions));
+                toName = "exit";
+            }
+            else if (transition.destinationState != null
+                     && stateNames.TryGetValue(transition.destinationState, out var stateName))
+            {
+                toName = stateName;
+            }
+            else if (transition.destinationStateMachine != null)
+            {
+                var entryState = FindEntryState(transition.destinationStateMachine);
+                if (entryState == null || !stateNames.TryGetValue(entryState, out toName))
+                {
+                    warnings.Add($"「{fromName}」からのサブステート遷移先を解決できないため、スキップしました");
+                    return;
+                }
+            }
+            else
+            {
+                warnings.Add($"「{fromName}」からの遷移先を解決できないため、スキップしました");
+                return;
             }
 
+            var line = new StringBuilder($"{fromName} -> {toName}");
+            if (transition.conditions.Length > 0)
+                line.Append(" when ").Append(string.Join(" and ", transition.conditions.Select(FormatCondition)));
+            writer.Line(line.ToString());
+        }
+
+        static void AppendTransitionOptions(StringBuilder line, AnimatorStateTransition transition,
+            List<string> warnings, string fromName, string toName)
+        {
             if (transition.hasExitTime)
                 line.Append($" exitTime {ScriptTextWriter.Format(transition.exitTime)}");
 
             if (transition.hasFixedDuration)
             {
-                // animscript では dur 省略時は Unity 標準（0.25秒）になるので、それ以外だけ書き出す
                 if (transition.duration != 0.25f)
                     line.Append($" dur {ScriptTextWriter.Format(transition.duration)}");
             }
@@ -298,11 +420,6 @@ namespace net.puk06.AnimScript
 
             if (transition.offset != 0f)
                 line.Append($" offset {ScriptTextWriter.Format(transition.offset)}");
-
-            if (fromName == "any" && transition.canTransitionToSelf)
-                line.Append(" self");
-
-            writer.Line(line.ToString());
         }
 
         static string FormatCondition(AnimatorCondition condition)
