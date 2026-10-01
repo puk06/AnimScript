@@ -47,6 +47,12 @@ namespace net.puk06.AnimScript.Editor.Ndmf
                     continue;
                 }
 
+                if (!scriptPath.EndsWith(".animscript", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    Debug.LogWarning($"[AnimScript] Pucoco 「{pucoco.name}」の ScriptFile は .animscript ファイルではありません", pucoco);
+                    continue;
+                }
+
                 string source;
                 try
                 {
