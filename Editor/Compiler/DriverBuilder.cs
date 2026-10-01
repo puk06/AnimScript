@@ -7,12 +7,6 @@ using VRC.SDKBase;
 
 namespace net.puk06.AnimScript
 {
-    // The SDK declares these behaviours abstract, so use concrete wrappers for Unity serialization.
-#if VRC_SDK_VRCSDK3
-    internal sealed class AnimScriptPlayableLayerControl : VRC_PlayableLayerControl { }
-    internal sealed class AnimScriptAnimatorTrackingControl : VRC_AnimatorTrackingControl { }
-#endif
-
     /// <summary>
     /// DriverBlockAst → VRC Avatar Parameter Driver (StateMachineBehaviour) の生成。
     ///
@@ -42,13 +36,13 @@ namespace net.puk06.AnimScript
         public static void Build(VirtualState state, PlayableLayerControlAst block, DiagnosticBag diagnostics)
         {
 #if VRC_SDK_VRCSDK3
-            if (!System.Enum.TryParse<VRC_PlayableLayerControl.BlendableLayer>(block.Layer, out var layer))
+            if (!System.Enum.TryParse<VRCPlayableLayerControl.BlendableLayer>(block.Layer, out var layer))
             {
                 diagnostics.Error(block.Location, $"不明なPlayable Layer「{block.Layer}」です（Action / FX / Gesture / Additive）");
                 return;
             }
-            var control = ScriptableObject.CreateInstance<AnimScriptPlayableLayerControl>();
-            control.name = "VRC_PlayableLayerControl";
+            var control = ScriptableObject.CreateInstance<VRCPlayableLayerControl>();
+            control.name = "VRCPlayableLayerControl";
             control.layer = layer;
             control.goalWeight = block.GoalWeight == null ? 1f : (float)block.GoalWeight.Const();
             control.blendDuration = block.BlendDuration == null ? 0f : (float)block.BlendDuration.Const();
@@ -62,11 +56,11 @@ namespace net.puk06.AnimScript
         public static void Build(VirtualState state, AnimatorTrackingControlAst block, DiagnosticBag diagnostics)
         {
 #if VRC_SDK_VRCSDK3
-            var control = ScriptableObject.CreateInstance<AnimScriptAnimatorTrackingControl>();
-            control.name = "VRC_AnimatorTrackingControl";
+            var control = ScriptableObject.CreateInstance<VRCAnimatorTrackingControl>();
+            control.name = "VRCAnimatorTrackingControl";
             foreach (var setting in block.Settings)
             {
-                if (!System.Enum.TryParse<VRC_AnimatorTrackingControl.TrackingType>(setting.Value, out var value))
+                if (!System.Enum.TryParse<VRCAnimatorTrackingControl.TrackingType>(setting.Value, out var value))
                 {
                     diagnostics.Error(block.Location, $"不明なTrackingType「{setting.Value}」です（NoChange / Tracking / Animation）");
                     continue;
