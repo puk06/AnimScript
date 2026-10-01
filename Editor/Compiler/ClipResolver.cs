@@ -11,7 +11,7 @@ namespace net.puk06.AnimScript
     ///
     /// 解決の優先順位:
     /// 1. スクリプトからの相対パス（クリップの拡張子 .anim は省略可）
-    /// 2. "Assets/..." で始まるプロジェクト内パス
+    /// 2. "Assets/..." または "Packages/..." で始まるプロジェクト内パス
     /// 3. 「/」を含まない場合は、クリップ名でプロジェクト全体を検索
     ///    （.fbx などのサブアセットも対象）
     /// </summary>
@@ -38,7 +38,7 @@ namespace net.puk06.AnimScript
             }
 
             diagnostics.Error(location,
-                $"モーション（AnimationClip / BlendTree）「{clipText}」が見つかりません。パスを確認してください（スクリプトからの相対パス、または Assets/ からのパスが書けます）");
+                $"モーション（AnimationClip / BlendTree）「{clipText}」が見つかりません。パスを確認してください（スクリプトからの相対パス、または Assets/ / Packages/ からのパスが書けます）");
             return null;
         }
 
@@ -47,7 +47,7 @@ namespace net.puk06.AnimScript
         {
             var hasExtension = Path.GetFileName(text).Contains(".");
 
-            if (text.StartsWith("Assets/"))
+            if (text.StartsWith("Assets/") || text.StartsWith("Packages/"))
             {
                 yield return text;
                 if (!hasExtension) yield return text + ".anim";

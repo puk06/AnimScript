@@ -292,7 +292,7 @@ for i in 0..3 {
 `state` に書いた文字列は、次の優先順位で探します。
 
 1. **スクリプトからの相対パス**：`state Idle = "Animations/Idle.anim"`（`.anim` は省略可）
-2. **Assets からのパス**：`state Idle = "Assets/Anims/Idle.anim"`
+2. **Assets / Packages からのパス**：`state Idle = "Assets/Anims/Idle.anim"` または `state Idle = "Packages/com.example.package/Anims/Idle.anim"`
 3. **クリップ名で検索**：`state Idle = "Idle"`（`/` を含まない場合。fbx 内のクリップも対象）
 
 同じ名前のクリップが複数見つかった場合は、候補一覧付きのエラーになります。パスで指定してください。
