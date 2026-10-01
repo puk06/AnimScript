@@ -141,7 +141,7 @@ Packages/net.puk06.animscript/
 |---|---|
 | `ScriptAst` | ファイル全体。パラメータ、レイヤー、ループ、変数宣言のリスト |
 | `LayerAst` | レイヤー名、オプション（`default`, `wd`, `loop`, `weight`）、ステート/遷移のリスト |
-| `StateAst` | ステート名、クリップパス、オプション（`speed`, `time`, `wd`, `loop`, `mirror`, `footIK`）、driver |
+| `StateAst` | ステート名、クリップパス、オプション（`speed`, `cycleOffset`, `time`, `wd`, `loop`, `mirror`, `footIK`）、driver |
 | `TransitionAst` | 遷移元/遷移先（チェーン対応）、条件、exitTime/dur/self |
 | `ParameterAst` | `param` 宣言（名前、型、初期値） |
 | `DriverAst` | driver ブロック（`localOnly` フラグ、アクションのリスト） |

@@ -24,6 +24,9 @@ namespace net.puk06.AnimScript
             if (ast.Speed != null)
                 state.Speed = (float)ast.Speed.Const();
 
+            if (ast.CycleOffset != null)
+                state.CycleOffset = (float)ast.CycleOffset.Const();
+
             if (ast.TimeParameter != null)
                 state.TimeParameter = ast.TimeParameter;
 

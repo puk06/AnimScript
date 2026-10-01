@@ -17,18 +17,20 @@ layer ""Locomotion"" default wd off {
     ...
 }
   default … 先頭レイヤーにする
-  wd on/off … レイヤー内ステートの WriteDefaults 既定値
+  wd on/off … レイヤー内ステートの WriteDefaults 既定値（writeDefault も可）
   loop on/off … レイヤー内クリップの Loop Time 既定値
   weight 1.0 … レイヤーウェイト
 
 ■ ステート
 state Idle = ""Idle.anim""           ← クリップを1行で
-state Walk = ""Walk.anim"" speed 1.2 time MotionTime mirror on footIK on wd off loop on
+state Walk = ""Walk.anim"" speed 1.2 cycleOffset 0.25 time MotionTime mirror on footIK on wd off loop on
 state Empty                          ← 空ステート（motion 無し）
 
 state Pose {
     clip ""Pose.anim""    （または clip none）
     speed 1.0
+    cycleOffset 0.25
+    （`co 0.25` と省略可）
     time MotionTime
     mirror on
     footIK on

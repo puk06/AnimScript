@@ -184,6 +184,8 @@ namespace net.puk06.AnimScript
             writer.Line(clipRef != null ? $"clip \"{clipRef}\"" : "clip none");
             if (state.speed != 1f)
                 writer.Line($"speed {ScriptTextWriter.Format(state.speed)}");
+            if (state.cycleOffset != 0f)
+                writer.Line($"cycleOffset {ScriptTextWriter.Format(state.cycleOffset)}");
             if (state.timeParameterActive)
                 writer.Line($"time {state.timeParameter}");
             if (state.mirror)
@@ -209,6 +211,8 @@ namespace net.puk06.AnimScript
         {
             if (state.speed != 1f)
                 line.Append($" speed {ScriptTextWriter.Format(state.speed)}");
+            if (state.cycleOffset != 0f)
+                line.Append($" cycleOffset {ScriptTextWriter.Format(state.cycleOffset)}");
             if (state.timeParameterActive)
                 line.Append($" time {state.timeParameter}");
             if (state.mirror)

@@ -400,10 +400,10 @@ namespace net.puk06.AnimScript
             while (Current.Kind != TokenKind.Newline && Current.Kind != TokenKind.OpenBrace && !IsAtEnd)
             {
                 if (CheckKeyword("default")) { Advance(); layer.IsDefault = true; }
-                else if (CheckKeyword("wd")) { Advance(); layer.WriteDefaults = ParseOnOff("wd"); }
+                else if (CheckKeyword("wd") || CheckKeyword("writeDefault")) { var option = Advance(); layer.WriteDefaults = ParseOnOff(option.Text); }
                 else if (CheckKeyword("loop")) { Advance(); layer.Loop = ParseOnOff("loop"); }
                 else if (CheckKeyword("weight")) { Advance(); layer.Weight = ParseExpression(); }
-                else throw Error(Current, $"不明なレイヤーオプション「{Current.Describe()}」です。default / wd / loop / weight が使えます");
+                else throw Error(Current, $"不明なレイヤーオプション「{Current.Describe()}」です。default / wd（writeDefault） / loop / weight が使えます");
             }
 
             ExpectBlockStart();
@@ -441,12 +441,13 @@ namespace net.puk06.AnimScript
                    && !IsAtEnd)
             {
                 if (CheckKeyword("speed")) { Advance(); state.Speed = ParseExpression(); }
+                else if (CheckKeyword("cycleOffset") || CheckKeyword("co")) { Advance(); state.CycleOffset = ParseExpression(); }
                 else if (CheckKeyword("time")) { Advance(); state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text; }
-                else if (CheckKeyword("wd")) { Advance(); state.WriteDefaults = ParseOnOff("wd"); }
+                else if (CheckKeyword("wd") || CheckKeyword("writeDefault")) { var option = Advance(); state.WriteDefaults = ParseOnOff(option.Text); }
                 else if (CheckKeyword("loop")) { Advance(); state.Loop = ParseOnOff("loop"); }
                 else if (CheckKeyword("mirror")) { Advance(); state.Mirror = ParseOnOff("mirror"); }
                 else if (CheckKeyword("footIK")) { Advance(); state.FootIK = ParseOnOff("footIK"); }
-                else throw Error(Current, $"不明なステートオプション「{Current.Describe()}」です。speed / time / wd / loop / mirror / footIK が使えます");
+                else throw Error(Current, $"不明なステートオプション「{Current.Describe()}」です。speed / cycleOffset（co） / time / wd（writeDefault） / loop / mirror / footIK が使えます");
             }
 
             // ブロック書き（{ は次の行でもOK）
@@ -480,16 +481,22 @@ namespace net.puk06.AnimScript
                         state.Speed = ParseExpression();
                         ExpectEndOfLine();
                     }
+                    else if (CheckKeyword("cycleOffset") || CheckKeyword("co"))
+                    {
+                        Advance();
+                        state.CycleOffset = ParseExpression();
+                        ExpectEndOfLine();
+                    }
                     else if (CheckKeyword("time"))
                     {
                         Advance();
                         state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text;
                         ExpectEndOfLine();
                     }
-                    else if (CheckKeyword("wd"))
+                    else if (CheckKeyword("wd") || CheckKeyword("writeDefault"))
                     {
-                        Advance();
-                        state.WriteDefaults = ParseOnOff("wd");
+                        var option = Advance();
+                        state.WriteDefaults = ParseOnOff(option.Text);
                         ExpectEndOfLine();
                     }
                     else if (CheckKeyword("loop"))
@@ -516,7 +523,7 @@ namespace net.puk06.AnimScript
                     }
                     else
                     {
-                        throw Error(Current, $"ステート内では clip / speed / time / wd / loop / mirror / footIK / driver が使えます。「{Current.Describe()}」は使えません");
+                        throw Error(Current, $"ステート内では clip / speed / cycleOffset（co） / time / wd（writeDefault） / loop / mirror / footIK / driver が使えます。「{Current.Describe()}」は使えません");
                     }
                 }
                 catch (ParseException)

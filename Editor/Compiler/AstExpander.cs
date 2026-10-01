@@ -255,6 +255,7 @@ namespace net.puk06.AnimScript
                 HasClip = source.HasClip,
                 ClipPath = source.ClipPath == null ? null : ExpandText(source.ClipPath, scope, source.Location),
                 Speed = ExpandExpr(source.Speed, scope),
+                CycleOffset = ExpandExpr(source.CycleOffset, scope),
                 TimeParameter = source.TimeParameter == null ? null : ExpandText(source.TimeParameter, scope, source.Location),
                 WriteDefaults = source.WriteDefaults,
                 Loop = source.Loop,

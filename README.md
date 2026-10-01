@@ -94,7 +94,7 @@ layer "Locomotion" default wd on loop off weight 1.0 {
 
 ```txt
 state Idle = "Idle.anim"                  // クリップ指定
-state Walk = "Walk.anim" speed 1.2 time MotionTime mirror on footIK on wd off // オプション付き
+state Walk = "Walk.anim" speed 1.2 cycleOffset 0.25 time MotionTime mirror on footIK on wd off // オプション付き
 state Empty                               // 空ステート（motion 無し）
 ```
 
@@ -104,6 +104,7 @@ state Empty                               // 空ステート（motion 無し）
 state Pose {
     clip "Pose.anim"    // または clip none （明示的に空）
     speed 1.0
+    cycleOffset 0.25
     time MotionTime
     mirror on
     footIK on
@@ -116,10 +117,11 @@ state Pose {
 | オプション | 意味 |
 |---|---|
 | `speed 数値` | ステートの再生速度 |
+| `cycleOffset 数値`（`co` と省略可） | クリップの再生開始位置 |
 | `time パラメータ名` | Motion Time を制御するパラメータ |
 | `mirror on/off` | ステートのミラー再生 |
 | `footIK on/off` | Foot IK |
-| `wd on/off` | Write Defaults（レイヤー指定より優先） |
+| `wd on/off`（`writeDefault` とも書けます） | Write Defaults（レイヤー指定より優先） |
 | `loop on/off` | このクリップの Loop Time ※レイヤー指定より優先 |
 | `driver { }` | VRC Parameter Driver（下記） |
 

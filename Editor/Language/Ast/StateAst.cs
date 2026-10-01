@@ -28,6 +28,8 @@ namespace net.puk06.AnimScript
         public string ClipPath { get; set; }
 
         public ExprAst Speed { get; set; }
+        /// <summary>クリップの再生開始位置。</summary>
+        public ExprAst CycleOffset { get; set; }
         /// <summary>Motion Time を制御するパラメータ名。未指定なら無効。</summary>
         public string TimeParameter { get; set; }
         public bool? WriteDefaults { get; set; }
