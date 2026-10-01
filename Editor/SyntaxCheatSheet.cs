@@ -46,7 +46,7 @@ state Pose {
 
 ■ 遷移
 entry -> Idle                        ← 開始地点（デフォルトステート）
-Idle -> Walk when Speed > 0.1 dur 0.25
+Idle -> Walk when Speed > 0.1 dur 0.25 offset 0.1
 Idle -> Walk -> Run -> Idle          ← チェーン（先頭に戻ればループ）
 Walk -> exit exitTime 0.95           ← Exit へ抜ける
 any  -> Idle when GestureLeft == 0   ← AnyState から

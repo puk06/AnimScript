@@ -296,6 +296,9 @@ namespace net.puk06.AnimScript
                 warnings.Add($"「{fromName} -> {toName}」の遷移時間は「割合（%）」指定のため、秒指定には変換されませんでした");
             }
 
+            if (transition.offset != 0f)
+                line.Append($" offset {ScriptTextWriter.Format(transition.offset)}");
+
             if (fromName == "any" && transition.canTransitionToSelf)
                 line.Append(" self");
 

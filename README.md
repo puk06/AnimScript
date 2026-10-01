@@ -152,7 +152,7 @@ state ThumbsUp {
 ```txt
 entry -> Idle                              // 開始地点（デフォルトステート）
 
-Idle  -> Walk when Speed > 0.1 dur 0.25    // 条件付き遷移
+Idle  -> Walk when Speed > 0.1 dur 0.25 offset 0.1 // 条件付き遷移
 Idle  -> Walk -> Run -> Idle               // チェーン（A→B→C と順に作られる）
 Idle  -> Walk -> Run -> Idle exitTime 0.95 // ↑先頭に戻れば「ループ」
 
@@ -166,6 +166,7 @@ any   -> Idle self                         // self … 自分自身への遷移�
 | `when 条件` | 遷移条件（`and` で複数指定可） |
 | `exitTime 数値` | Exit Time。**書くと HasExitTime が ON**、書かなければ OFF |
 | `dur 数値` | 遷移時間（秒） |
+| `offset 数値` | 遷移先クリップの再生位置オフセット |
 | `self` | AnyState 遷移で canTransitionToSelf を ON（`any` からのみ） |
 
 ### 条件の書き方

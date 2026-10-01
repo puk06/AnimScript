@@ -145,12 +145,13 @@ namespace net.puk06.AnimScript
                     diagnostics.Error(transition.Location, "entry の次はステート名を書いてください（entry -> ステート名）");
 
                 var hasOptions = transition.Condition != null
-                                 || transition.ExitTime != null
-                                 || transition.Duration != null
-                                 || transition.AllowSelf;
+                                  || transition.ExitTime != null
+                                  || transition.Duration != null
+                                  || transition.Offset != null
+                                  || transition.AllowSelf;
                 if (chain.Count == 2 && hasOptions)
                     diagnostics.Error(transition.Location,
-                        "entry -> ステート名 はデフォルトステートの指定なので、when / exitTime / dur / self は付けられません");
+                        "entry -> ステート名 はデフォルトステートの指定なので、when / exitTime / dur / offset / self は付けられません");
             }
 
             // any 始まり

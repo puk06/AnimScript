@@ -309,6 +309,7 @@ namespace net.puk06.AnimScript
             {
                 ExitTime = ExpandExpr(source.ExitTime, scope),
                 Duration = ExpandExpr(source.Duration, scope),
+                Offset = ExpandExpr(source.Offset, scope),
                 AllowSelf = source.AllowSelf,
                 Location = source.Location,
             };

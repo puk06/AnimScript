@@ -17,7 +17,7 @@ namespace net.puk06.AnimScript
         static readonly HashSet<string> Keywords = new HashSet<string>
         {
             "param", "layer", "state", "entry", "exit", "any",
-            "when", "and", "or", "dur", "exitTime", "self",
+            "when", "and", "or", "dur", "offset", "exitTime", "self",
             "speed", "wd", "loop", "clip", "none",
             "driver", "localOnly", "set", "add", "random", "copy",
             "default", "weight", "float", "int", "bool",

@@ -673,6 +673,13 @@ namespace net.puk06.AnimScript
                         throw Error(keyword, "dur は1回だけ指定できます");
                     transition.Duration = ParseExpression();
                 }
+                else if (CheckKeyword("offset"))
+                {
+                    var keyword = Advance();
+                    if (transition.Offset != null)
+                        throw Error(keyword, "offset は1回だけ指定できます");
+                    transition.Offset = ParseExpression();
+                }
                 else if (CheckKeyword("self"))
                 {
                     Advance();
@@ -680,7 +687,7 @@ namespace net.puk06.AnimScript
                 }
                 else
                 {
-                    throw Error(Current, $"不明な遷移オプション「{Current.Describe()}」です。when / exitTime / dur / self が使えます");
+                    throw Error(Current, $"不明な遷移オプション「{Current.Describe()}」です。when / exitTime / dur / offset / self が使えます");
                 }
             }
 

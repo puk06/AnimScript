@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace net.puk06.AnimScript
 {
     /// <summary>
-    /// 遷移定義。`A -> B -> C when X dur 0.2` のような1行。
+    /// 遷移定義。`A -> B -> C when X dur 0.2 offset 0.1` のような1行。
     ///
     /// Chain はノード名の並び（"entry" / "exit" / "any" / ステート名。$変数を含むことがある）。
     /// Chain.Count >= 2 が Parser により保証される。
@@ -21,6 +21,9 @@ namespace net.puk06.AnimScript
 
         /// <summary>dur 指定（遷移時間・秒）。</summary>
         public ExprAst Duration { get; set; }
+
+        /// <summary>offset 指定（遷移先クリップの再生位置）。</summary>
+        public ExprAst Offset { get; set; }
 
         /// <summary>any からの遷移で自分自身への遷移も許可するか。</summary>
         public bool AllowSelf { get; set; }

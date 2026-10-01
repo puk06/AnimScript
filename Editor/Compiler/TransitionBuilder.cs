@@ -63,6 +63,9 @@ namespace net.puk06.AnimScript
                 transition.Duration = (float)ast.Duration.Const();
             }
 
+            if (ast.Offset != null)
+                transition.Offset = (float)ast.Offset.Const();
+
             var conditions = ImmutableList.CreateBuilder<AnimatorCondition>();
             foreach (var condition in term)
             {
