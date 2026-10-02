@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Animations;
 
 namespace net.puk06.AnimScript
 {
@@ -23,6 +24,9 @@ namespace net.puk06.AnimScript
 
         /// <summary>レイヤー内クリップの loopTime の既定値（loop on/off）。</summary>
         public bool? Loop { get; set; }
+
+        /// <summary>レイヤーのブレンディングモード（bl additive / override）。</summary>
+        public AnimatorLayerBlendingMode? BlendingMode { get; set; }
 
         /// <summary>レイヤーウェイト（weight）。null なら 1。</summary>
         public ExprAst Weight { get; set; }

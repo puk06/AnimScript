@@ -86,7 +86,7 @@ layer "Example" {
 ## レイヤー（layer）
 
 ```txt
-layer "Locomotion" default wd on loop off weight 1.0 {
+layer "Locomotion" default wd on loop off bl additive weight 1.0 {
     ...
 }
 ```
@@ -96,6 +96,7 @@ layer "Locomotion" default wd on loop off weight 1.0 {
 | `default` | このレイヤーをコントローラの先頭にする | 最初のレイヤー |
 | `wd on/off` | レイヤー内ステートの Write Defaults 既定値 | `on`（Unity 標準） |
 | `loop on/off` | レイヤー内クリップの Loop Time 既定値 ※ | 変更しない |
+| `bl additive/override` | レイヤーのブレンディングモード | `override` |
 | `weight 数値` | レイヤーウェイト | `1.0` |
 
 複数レイヤーも書けます。`default` は1つだけ。

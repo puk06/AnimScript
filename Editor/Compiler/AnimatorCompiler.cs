@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.animator;
+using UnityEditor.Animations;
 
 namespace net.puk06.AnimScript
 {
@@ -74,6 +75,7 @@ namespace net.puk06.AnimScript
             foreach (var layerAst in OrderLayers(ast.Layers))
             {
                 var layer = controller.AddLayer(LayerPriority.Default, layerAst.Name);
+                layer.BlendingMode = layerAst.BlendingMode ?? AnimatorLayerBlendingMode.Override;
                 layer.DefaultWeight = (float)(layerAst.Weight?.Const() ?? 1.0);
 
                 LayerBuilder.Build(layer, layerAst, motionMap, diagnostics);

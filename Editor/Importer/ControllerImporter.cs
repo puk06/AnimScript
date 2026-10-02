@@ -113,6 +113,7 @@ namespace net.puk06.AnimScript
             if (isFirst) header.Append(" default");
             if (uniformWriteDefaults)
                 header.Append(children[0].state.writeDefaultValues ? " wd on" : " wd off");
+            header.Append(layer.blendingMode == AnimatorLayerBlendingMode.Additive ? " bl additive" : " bl override");
             if (layer.defaultWeight != 1f)
                 header.Append($" weight {ScriptTextWriter.Format(layer.defaultWeight)}");
             header.Append(" {");

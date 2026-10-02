@@ -403,8 +403,9 @@ namespace net.puk06.AnimScript
                 if (CheckKeyword("default")) { Advance(); layer.IsDefault = true; }
                 else if (CheckKeyword("wd") || CheckKeyword("writeDefault")) { var option = Advance(); layer.WriteDefaults = ParseOnOff(option.Text); }
                 else if (CheckKeyword("loop")) { Advance(); layer.Loop = ParseOnOff("loop"); }
+                else if (CheckKeyword("bl")) { Advance(); layer.BlendingMode = ParseBlendingMode(); }
                 else if (CheckKeyword("weight")) { Advance(); layer.Weight = ParseExpression(); }
-                else throw Error(Current, $"不明なレイヤーオプション「{Current.Describe()}」です。default / wd（writeDefault） / loop / weight が使えます");
+                else throw Error(Current, $"不明なレイヤーオプション「{Current.Describe()}」です。default / wd（writeDefault） / loop / bl / weight が使えます");
             }
 
             ExpectBlockStart();
@@ -1000,6 +1001,13 @@ namespace net.puk06.AnimScript
             if (CheckKeyword("on")) { Advance(); return true; }
             if (CheckKeyword("off")) { Advance(); return false; }
             throw Error(Current, $"{optionName} には on または off を指定してください");
+        }
+
+        UnityEditor.Animations.AnimatorLayerBlendingMode ParseBlendingMode()
+        {
+            if (CheckKeyword("additive")) { Advance(); return UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; }
+            if (CheckKeyword("override")) { Advance(); return UnityEditor.Animations.AnimatorLayerBlendingMode.Override; }
+            throw Error(Current, "bl には additive または override を指定してください");
         }
 
         string ParseParameterName(string what)

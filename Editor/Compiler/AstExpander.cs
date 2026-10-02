@@ -224,6 +224,7 @@ namespace net.puk06.AnimScript
                 IsDefault = source.IsDefault,
                 WriteDefaults = source.WriteDefaults,
                 Loop = source.Loop,
+                BlendingMode = source.BlendingMode,
                 Weight = ExpandExpr(source.Weight, scope),
                 Location = source.Location,
             };
