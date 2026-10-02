@@ -294,6 +294,20 @@ namespace net.puk06.AnimScript
                     expanded.Settings[setting.Key] = ExpandText(setting.Value, scope, control.Location);
                 state.AnimatorTrackingControls.Add(expanded);
             }
+            foreach (var control in source.AnimatorLocomotionControls)
+                state.AnimatorLocomotionControls.Add(new AnimatorLocomotionControlAst
+                {
+                    DisableLocomotion = control.DisableLocomotion,
+                    Location = control.Location,
+                });
+            foreach (var control in source.AnimatorTemporaryPoseSpaces)
+                state.AnimatorTemporaryPoseSpaces.Add(new AnimatorTemporaryPoseSpaceAst
+                {
+                    EnterPoseSpace = control.EnterPoseSpace,
+                    FixedDelay = control.FixedDelay,
+                    Delay = ExpandExpr(control.Delay, scope),
+                    Location = control.Location,
+                });
 
             return state;
         }

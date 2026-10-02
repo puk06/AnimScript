@@ -53,6 +53,10 @@ namespace net.puk06.AnimScript
                 DriverBuilder.Build(state, control, diagnostics);
             foreach (var control in ast.AnimatorTrackingControls)
                 DriverBuilder.Build(state, control, diagnostics);
+            foreach (var control in ast.AnimatorLocomotionControls)
+                DriverBuilder.Build(state, control, diagnostics);
+            foreach (var control in ast.AnimatorTemporaryPoseSpaces)
+                DriverBuilder.Build(state, control, diagnostics);
 
             return state;
         }

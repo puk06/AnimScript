@@ -149,6 +149,8 @@ state Pose {
 | `playableLayerControl { }` | VRC Playable Layer Control |
 | `animatorLayerControl { }` | VRC Animator Layer Control |
 | `trackingControl { }` | VRC Animator Tracking Control |
+| `locomotionControl { }` | VRC Animator Locomotion Control |
+| `temporaryPoseSpace { }` | VRC Animator Temporary Pose Space |
 
 `{` は次の行に書いても OK（Allman スタイル）です。
 
@@ -208,6 +210,20 @@ animatorLayerControl {
     blendDuration 0.25
 }
 ```
+
+```txt
+locomotionControl {
+    disableLocomotion true
+}
+
+temporaryPoseSpace {
+    poseSpace enter
+    fixedDelay false
+    delay 0.25
+}
+```
+
+`temporaryPoseSpace` の `poseSpace` には `enter` / `exit`、`fixedDelay` には `true` / `false` を指定します。
 
 ## 遷移（->）
 

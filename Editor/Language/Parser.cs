@@ -544,9 +544,11 @@ namespace net.puk06.AnimScript
                     else if (CheckKeyword("playableLayerControl")) state.PlayableLayerControls.Add(ParsePlayableLayerControl());
                     else if (CheckKeyword("animatorLayerControl")) state.AnimatorLayerControls.Add(ParseAnimatorLayerControl());
                     else if (CheckKeyword("trackingControl")) state.AnimatorTrackingControls.Add(ParseAnimatorTrackingControl());
+                    else if (CheckKeyword("locomotionControl")) state.AnimatorLocomotionControls.Add(ParseAnimatorLocomotionControl());
+                    else if (CheckKeyword("temporaryPoseSpace")) state.AnimatorTemporaryPoseSpaces.Add(ParseAnimatorTemporaryPoseSpace());
                     else
                     {
-                        throw Error(Current, $"ステート内では clip / speed / speedParam（sp） / cycleOffset（co） / cycleOffsetParam（cop） / time / wd（writeDefault） / loop / mirror / mirrorParam（mp） / footIK / driver / playableLayerControl / animatorLayerControl / trackingControl が使えます。「{Current.Describe()}」は使えません");
+                        throw Error(Current, $"ステート内では clip / speed / speedParam（sp） / cycleOffset（co） / cycleOffsetParam（cop） / time / wd（writeDefault） / loop / mirror / mirrorParam（mp） / footIK / driver / playableLayerControl / animatorLayerControl / trackingControl / locomotionControl / temporaryPoseSpace が使えます。「{Current.Describe()}」は使えません");
                     }
                 }
                 catch (ParseException)
@@ -657,6 +659,55 @@ namespace net.puk06.AnimScript
                     case "goalWeight": control.GoalWeight = ParseExpression(); break;
                     case "blendDuration": control.BlendDuration = ParseExpression(); break;
                     default: throw Error(item, $"不明な animatorLayerControl 項目「{item.Text}」です");
+                }
+                ExpectEndOfLine();
+            }
+            Expect(TokenKind.CloseBrace, "「}」");
+            return control;
+        }
+
+        AnimatorLocomotionControlAst ParseAnimatorLocomotionControl()
+        {
+            var keyword = Advance();
+            var control = new AnimatorLocomotionControlAst { Location = keyword.Location };
+            ExpectBlockStart();
+            Expect(TokenKind.OpenBrace, "「{」");
+            while (!IsAtEnd && Current.Kind != TokenKind.CloseBrace)
+            {
+                SkipNewlines();
+                if (IsAtEnd || Current.Kind == TokenKind.CloseBrace) break;
+                var item = Expect(TokenKind.Identifier, "disableLocomotion");
+                if (item.Text != "disableLocomotion")
+                    throw Error(item, $"不明な locomotionControl 項目「{item.Text}」です");
+                control.DisableLocomotion = ParseBoolean("disableLocomotion");
+                ExpectEndOfLine();
+            }
+            Expect(TokenKind.CloseBrace, "「}」");
+            return control;
+        }
+
+        AnimatorTemporaryPoseSpaceAst ParseAnimatorTemporaryPoseSpace()
+        {
+            var keyword = Advance();
+            var control = new AnimatorTemporaryPoseSpaceAst { Location = keyword.Location };
+            ExpectBlockStart();
+            Expect(TokenKind.OpenBrace, "「{」");
+            while (!IsAtEnd && Current.Kind != TokenKind.CloseBrace)
+            {
+                SkipNewlines();
+                if (IsAtEnd || Current.Kind == TokenKind.CloseBrace) break;
+                var item = Expect(TokenKind.Identifier, "poseSpace / fixedDelay / delay");
+                switch (item.Text)
+                {
+                    case "poseSpace":
+                        var poseSpace = Expect(TokenKind.Identifier, "enter / exit");
+                        if (poseSpace.Text == "enter") control.EnterPoseSpace = true;
+                        else if (poseSpace.Text == "exit") control.EnterPoseSpace = false;
+                        else throw Error(poseSpace, "poseSpace には enter または exit を指定してください");
+                        break;
+                    case "fixedDelay": control.FixedDelay = ParseBoolean("fixedDelay"); break;
+                    case "delay": control.Delay = ParseExpression(); break;
+                    default: throw Error(item, $"不明な temporaryPoseSpace 項目「{item.Text}」です");
                 }
                 ExpectEndOfLine();
             }
@@ -1001,6 +1052,13 @@ namespace net.puk06.AnimScript
             if (CheckKeyword("on")) { Advance(); return true; }
             if (CheckKeyword("off")) { Advance(); return false; }
             throw Error(Current, $"{optionName} には on または off を指定してください");
+        }
+
+        bool ParseBoolean(string optionName)
+        {
+            if (CheckKeyword("true")) { Advance(); return true; }
+            if (CheckKeyword("false")) { Advance(); return false; }
+            throw Error(Current, $"{optionName} には true または false を指定してください");
         }
 
         UnityEditor.Animations.AnimatorLayerBlendingMode ParseBlendingMode()

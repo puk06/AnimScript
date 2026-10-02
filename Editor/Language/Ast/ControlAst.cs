@@ -24,4 +24,18 @@ namespace net.puk06.AnimScript
         public ExprAst BlendDuration { get; set; }
         public SourceLocation Location { get; set; }
     }
+
+    internal sealed class AnimatorLocomotionControlAst : IBlockItem
+    {
+        public bool DisableLocomotion { get; set; }
+        public SourceLocation Location { get; set; }
+    }
+
+    internal sealed class AnimatorTemporaryPoseSpaceAst : IBlockItem
+    {
+        public bool EnterPoseSpace { get; set; }
+        public bool FixedDelay { get; set; }
+        public ExprAst Delay { get; set; }
+        public SourceLocation Location { get; set; }
+    }
 }

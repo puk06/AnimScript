@@ -49,6 +49,8 @@ namespace net.puk06.AnimScript
         public List<PlayableLayerControlAst> PlayableLayerControls { get; } = new List<PlayableLayerControlAst>();
         public List<AnimatorLayerControlAst> AnimatorLayerControls { get; } = new List<AnimatorLayerControlAst>();
         public List<AnimatorTrackingControlAst> AnimatorTrackingControls { get; } = new List<AnimatorTrackingControlAst>();
+        public List<AnimatorLocomotionControlAst> AnimatorLocomotionControls { get; } = new List<AnimatorLocomotionControlAst>();
+        public List<AnimatorTemporaryPoseSpaceAst> AnimatorTemporaryPoseSpaces { get; } = new List<AnimatorTemporaryPoseSpaceAst>();
 
         public SourceLocation Location { get; set; }
     }

@@ -108,6 +108,34 @@ namespace net.puk06.AnimScript
 #endif
         }
 
+        public static void Build(VirtualState state, AnimatorLocomotionControlAst block, DiagnosticBag diagnostics)
+        {
+#if VRC_SDK_VRCSDK3
+            var control = ScriptableObject.CreateInstance<VRCAnimatorLocomotionControl>();
+            control.name = "VRCAnimatorLocomotionControl";
+            control.disableLocomotion = block.DisableLocomotion;
+            control.debugString = "AnimScriptBuilder: locomotionControl";
+            state.Behaviours = state.Behaviours.Add(control);
+#else
+            diagnostics.Warning(block.Location, "VRC SDK (Avatar 3.0) が見つからないため、locomotionControl ブロックはスキップされました");
+#endif
+        }
+
+        public static void Build(VirtualState state, AnimatorTemporaryPoseSpaceAst block, DiagnosticBag diagnostics)
+        {
+#if VRC_SDK_VRCSDK3
+            var control = ScriptableObject.CreateInstance<VRCAnimatorTemporaryPoseSpace>();
+            control.name = "VRCAnimatorTemporaryPoseSpace";
+            control.enterPoseSpace = block.EnterPoseSpace;
+            control.fixedDelay = block.FixedDelay;
+            control.delayTime = block.Delay == null ? 0f : (float)block.Delay.Const();
+            control.debugString = "AnimScriptBuilder: temporaryPoseSpace";
+            state.Behaviours = state.Behaviours.Add(control);
+#else
+            diagnostics.Warning(block.Location, "VRC SDK (Avatar 3.0) が見つからないため、temporaryPoseSpace ブロックはスキップされました");
+#endif
+        }
+
 #if VRC_SDK_VRCSDK3
         static VRC_AvatarParameterDriver.Parameter BuildParameter(DriverActionAst action)
         {

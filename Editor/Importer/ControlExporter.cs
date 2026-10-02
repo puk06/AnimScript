@@ -45,6 +45,23 @@ namespace net.puk06.AnimScript
                 lines.Add($"mouth {control.trackingMouth}");
                 lines.Add("}");
             }
+            foreach (var control in state.behaviours.OfType<VRCAnimatorLocomotionControl>())
+            {
+                lines.Add("locomotionControl {");
+                lines.Add($"disableLocomotion {(control.disableLocomotion ? "true" : "false")}");
+                lines.Add("}");
+            }
+            foreach (var control in state.behaviours.OfType<VRCAnimatorPlayAudio>()) // Not Supported
+            {
+            }
+            foreach (var control in state.behaviours.OfType<VRCAnimatorTemporaryPoseSpace>())
+            {
+                lines.Add("temporaryPoseSpace {");
+                lines.Add($"poseSpace {(control.enterPoseSpace ? "enter" : "exit")}");
+                lines.Add($"fixedDelay {(control.fixedDelay ? "true" : "false")}");
+                lines.Add($"delay {ScriptTextWriter.Format(control.delayTime)}");
+                lines.Add("}");
+            }
 #endif
             return lines;
         }

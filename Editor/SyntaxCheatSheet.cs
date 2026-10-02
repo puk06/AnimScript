@@ -59,6 +59,16 @@ Walk -> exit exitTime 0.95           ← Exit へ抜ける
 any  -> Idle when GestureLeft == 0   ← AnyState から
 any  -> Idle self                    ← self で自分への遷移も許可
 
+■ VRC コントロール
+locomotionControl {
+    disableLocomotion true
+}
+temporaryPoseSpace {
+    poseSpace enter
+    fixedDelay false
+    delay 0.25
+}
+
 ■ 条件（when の後）
 Param          … true のとき
 !Param         … false のとき
