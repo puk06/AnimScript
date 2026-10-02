@@ -35,9 +35,14 @@ namespace net.puk06.AnimScript
         /// </summary>
         public static string Format(float value)
         {
+            // Unity の計算誤差で出る極小値は、意図した 0 として扱う。
+            if (System.Math.Abs(value) < 0.000001f)
+                return "0";
+
             if (value == System.Math.Floor(value) && !float.IsInfinity(value))
                 return ((long)value).ToString(CultureInfo.InvariantCulture);
-            return value.ToString(CultureInfo.InvariantCulture);
+            // G 指定は指数表記になることがあるため、AnimScript の構文に合わせて固定小数点で出力する。
+            return value.ToString("0.#########", CultureInfo.InvariantCulture);
         }
     }
 }
