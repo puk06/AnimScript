@@ -226,6 +226,7 @@ namespace net.puk06.AnimScript
                 Loop = source.Loop,
                 BlendingMode = source.BlendingMode,
                 Weight = ExpandExpr(source.Weight, scope),
+                AvatarMaskPath = source.AvatarMaskPath == null ? null : ExpandText(source.AvatarMaskPath, scope, source.Location),
                 Location = source.Location,
             };
 

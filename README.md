@@ -97,6 +97,7 @@ layer "Locomotion" default wd on loop off bl additive weight 1.0 {
 | `wd on/off` | レイヤー内ステートの Write Defaults 既定値 | `on`（Unity 標準） |
 | `loop on/off` | レイヤー内クリップの Loop Time 既定値 ※ | 変更しない |
 | `bl additive/override` | レイヤーのブレンディングモード | `override` |
+| `mask "パス"` | レイヤーに適用する AvatarMask（`.mask`） | なし |
 | `weight 数値` | レイヤーウェイト | `1.0` |
 
 複数レイヤーも書けます。`default` は1つだけ。

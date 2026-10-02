@@ -129,6 +129,13 @@ namespace net.puk06.AnimScript
             if (uniformWriteDefaults)
                 header.Append(children[0].state.writeDefaultValues ? " wd on" : " wd off");
             header.Append(layer.blendingMode == AnimatorLayerBlendingMode.Additive ? " bl additive" : " bl override");
+            if (layer.avatarMask != null)
+            {
+                var maskPath = AssetDatabase.GetAssetPath(layer.avatarMask);
+                var maskPrefix = scriptDirectory + "/";
+                if (maskPath.StartsWith(maskPrefix)) maskPath = maskPath.Substring(maskPrefix.Length);
+                header.Append($" mask \"{maskPath}\"");
+            }
             if (layer.defaultWeight != 1f)
                 header.Append($" weight {ScriptTextWriter.Format(layer.defaultWeight)}");
             header.Append(" {");

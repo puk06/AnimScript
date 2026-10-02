@@ -404,8 +404,9 @@ namespace net.puk06.AnimScript
                 else if (CheckKeyword("wd") || CheckKeyword("writeDefault")) { var option = Advance(); layer.WriteDefaults = ParseOnOff(option.Text); }
                 else if (CheckKeyword("loop")) { Advance(); layer.Loop = ParseOnOff("loop"); }
                 else if (CheckKeyword("bl")) { Advance(); layer.BlendingMode = ParseBlendingMode(); }
+                else if (CheckKeyword("mask")) { Advance(); layer.AvatarMaskPath = Expect(TokenKind.String, "AvatarMask のパス（\"…\"）").Text; }
                 else if (CheckKeyword("weight")) { Advance(); layer.Weight = ParseExpression(); }
-                else throw Error(Current, $"不明なレイヤーオプション「{Current.Describe()}」です。default / wd（writeDefault） / loop / bl / weight が使えます");
+                else throw Error(Current, $"不明なレイヤーオプション「{Current.Describe()}」です。default / wd（writeDefault） / loop / bl / mask / weight が使えます");
             }
 
             ExpectBlockStart();

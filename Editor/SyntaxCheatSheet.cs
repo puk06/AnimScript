@@ -21,6 +21,7 @@ layer ""Locomotion"" default wd off {
   wd on/off … レイヤー内ステートの WriteDefaults 既定値（writeDefault も可）
   loop on/off … レイヤー内クリップの Loop Time 既定値
   bl additive/override … レイヤーのブレンディングモード（既定値 override）
+  mask ""Masks/UpperBody.mask"" … レイヤーに適用する AvatarMask
   weight 1.0 … レイヤーウェイト
 
 ■ ステート

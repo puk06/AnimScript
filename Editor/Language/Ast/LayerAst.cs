@@ -31,6 +31,9 @@ namespace net.puk06.AnimScript
         /// <summary>レイヤーウェイト（weight）。null なら 1。</summary>
         public ExprAst Weight { get; set; }
 
+        /// <summary>レイヤーに適用する AvatarMask のパス。</summary>
+        public string AvatarMaskPath { get; set; }
+
         public List<IBlockItem> Items { get; } = new List<IBlockItem>();
 
         public List<StateAst> States { get; } = new List<StateAst>();

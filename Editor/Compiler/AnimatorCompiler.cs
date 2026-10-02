@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.animator;
+using UnityEditor;
 using UnityEditor.Animations;
+using UnityEngine;
 
 namespace net.puk06.AnimScript
 {
@@ -77,9 +79,36 @@ namespace net.puk06.AnimScript
                 var layer = controller.AddLayer(LayerPriority.Default, layerAst.Name);
                 layer.BlendingMode = layerAst.BlendingMode ?? AnimatorLayerBlendingMode.Override;
                 layer.DefaultWeight = (float)(layerAst.Weight?.Const() ?? 1.0);
+                if (layerAst.AvatarMaskPath != null)
+                {
+                    var mask = ResolveAvatarMask(layerAst.AvatarMaskPath, scriptAssetPath,
+                        layerAst.Location, diagnostics);
+                    if (mask != null)
+                        layer.AvatarMask = cloneContext.Clone(mask)!;
+                }
 
                 LayerBuilder.Build(layer, layerAst, motionMap, diagnostics);
             }
+        }
+
+        static AvatarMask ResolveAvatarMask(string maskText, string scriptAssetPath,
+            SourceLocation location, DiagnosticBag diagnostics)
+        {
+            var text = maskText.Replace('\\', '/');
+            var directory = AnimScriptPaths.GetDirectoryPath(scriptAssetPath);
+            var candidates = text.StartsWith("Assets/") || text.StartsWith("Packages/")
+                ? new[] { text }
+                : new[] { directory + "/" + text };
+
+            foreach (var candidate in candidates)
+            {
+                var mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(candidate);
+                if (mask != null) return mask;
+            }
+
+            diagnostics.Error(location,
+                $"AvatarMask「{maskText}」が見つかりません。スクリプトからの相対パス、または Assets/ / Packages/ からのパスを指定してください");
+            return null;
         }
 
         // ================================================================
