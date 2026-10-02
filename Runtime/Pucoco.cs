@@ -8,7 +8,7 @@ namespace net.puk06.AnimScript
 {
     [Serializable]
     [AddComponentMenu("Pucoco! - Non-Destructive AnimScript Builder")]
-    public class Pucoco : MonoBehaviour
+    public class Pucoco : MonoBehaviour, VRC.SDKBase.IEditorOnly
     {
         public UnityEngine.Object? ScriptFile;
         public VRCAvatarDescriptor.AnimLayerType LayerType = VRCAvatarDescriptor.AnimLayerType.FX;
