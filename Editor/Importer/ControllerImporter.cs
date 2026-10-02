@@ -32,15 +32,22 @@ namespace net.puk06.AnimScript
             writer.Line();
 
             // --- パラメータ ---
+            var parameterNames = new HashSet<string>();
+            var parameterNameMap = new Dictionary<string, string>();
             foreach (var parameter in controller.parameters)
-                WriteParameter(writer, parameter, warnings);
+            {
+                var name = NameSanitizer.SanitizeUnique(parameter.name, parameterNames, warnings);
+                parameterNameMap[parameter.name] = name;
+                WriteParameter(writer, parameter, name, warnings);
+            }
             if (controller.parameters.Length > 0)
                 writer.Line();
 
             // --- レイヤー ---
             for (var i = 0; i < controller.layers.Length; i++)
             {
-                WriteLayer(writer, controller.layers[i], isFirst: i == 0, scriptDirectory, warnings);
+                WriteLayer(writer, controller.layers[i], isFirst: i == 0, scriptDirectory,
+                    parameterNameMap, warnings);
                 if (i < controller.layers.Length - 1)
                     writer.Line();
             }
@@ -67,10 +74,9 @@ namespace net.puk06.AnimScript
         // パラメータ
         // ================================================================
 
-        static void WriteParameter(ScriptTextWriter writer, AnimatorControllerParameter parameter, List<string> warnings)
+        static void WriteParameter(ScriptTextWriter writer, AnimatorControllerParameter parameter,
+            string name, List<string> warnings)
         {
-            var name = NameSanitizer.Sanitize(parameter.name, warnings);
-
             switch (parameter.type)
             {
                 case AnimatorControllerParameterType.Float:
@@ -95,7 +101,8 @@ namespace net.puk06.AnimScript
         // ================================================================
 
         static void WriteLayer(ScriptTextWriter writer, AnimatorControllerLayer layer, bool isFirst,
-            string scriptDirectory, List<string> warnings)
+            string scriptDirectory, IReadOnlyDictionary<string, string> parameterNameMap,
+            List<string> warnings)
         {
             var stateMachine = layer.stateMachine;
             var children = stateMachine.states.ToArray();
@@ -118,7 +125,7 @@ namespace net.puk06.AnimScript
             var usedNames = new HashSet<string>();
             CollectNames(stateMachine, stateNames, usedNames, warnings);
             WriteFlattenedStates(writer, stateMachine, stateMachine, stateNames,
-                uniformWriteDefaults, scriptDirectory, warnings);
+                uniformWriteDefaults, scriptDirectory, parameterNameMap, warnings);
 
             var entryState = FindEntryState(stateMachine);
             if (entryState != null)
@@ -127,7 +134,7 @@ namespace net.puk06.AnimScript
                 writer.Line($"entry -> {stateNames[entryState]}");
             }
 
-            WriteFlattenedTransitions(writer, stateMachine, stateMachine, stateNames, warnings);
+            WriteFlattenedTransitions(writer, stateMachine, stateMachine, stateNames, parameterNameMap, warnings);
 
             writer.Unindent();
             writer.Line("}");
@@ -150,14 +157,16 @@ namespace net.puk06.AnimScript
 
         static void WriteFlattenedStates(ScriptTextWriter writer, AnimatorStateMachine root,
             AnimatorStateMachine current, Dictionary<AnimatorState, string> stateNames,
-            bool rootUniformWriteDefaults, string scriptDirectory, List<string> warnings)
+            bool rootUniformWriteDefaults, string scriptDirectory,
+            IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             foreach (var child in current.states
                          .OrderBy(child => child.position.y)
                          .ThenBy(child => child.position.x))
             {
                 var uniform = current == root ? rootUniformWriteDefaults : false;
-                WriteState(writer, child.state, stateNames[child.state], uniform, scriptDirectory, warnings);
+                WriteState(writer, child.state, stateNames[child.state], uniform, scriptDirectory,
+                    parameterNameMap, warnings);
             }
 
             foreach (var child in current.stateMachines
@@ -167,7 +176,7 @@ namespace net.puk06.AnimScript
                 writer.Line();
                 writer.Comment($"ここから先はサブステート「{child.stateMachine.name}」の内部です");
                 WriteFlattenedStates(writer, root, child.stateMachine, stateNames,
-                    rootUniformWriteDefaults, scriptDirectory, warnings);
+                    rootUniformWriteDefaults, scriptDirectory, parameterNameMap, warnings);
                 writer.Comment("サブステート終了です");
             }
         }
@@ -191,10 +200,11 @@ namespace net.puk06.AnimScript
 
         static void WriteFlattenedTransitions(ScriptTextWriter writer,
             AnimatorStateMachine root, AnimatorStateMachine current,
-            Dictionary<AnimatorState, string> stateNames, List<string> warnings)
+            Dictionary<AnimatorState, string> stateNames,
+            IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             foreach (var transition in current.anyStateTransitions)
-                WriteFlattenedTransition(writer, "any", transition, stateNames, warnings);
+                WriteFlattenedTransition(writer, "any", transition, stateNames, parameterNameMap, warnings);
 
             foreach (var child in current.states)
             {
@@ -202,7 +212,8 @@ namespace net.puk06.AnimScript
                 {
                     // サブステート内の Exit は、親のステートマシン遷移で展開する。
                     if (transition.isExit && current != root) continue;
-                    WriteFlattenedTransition(writer, stateNames[child.state], transition, stateNames, warnings);
+                    WriteFlattenedTransition(writer, stateNames[child.state], transition, stateNames,
+                        parameterNameMap, warnings);
                 }
             }
 
@@ -214,10 +225,11 @@ namespace net.puk06.AnimScript
                     CollectExitStates(child.stateMachine, exitStates);
                     foreach (var exitState in exitStates)
                         WriteFlattenedMachineTransition(writer, stateNames[exitState], transition,
-                            stateNames, warnings);
+                            stateNames, parameterNameMap, warnings);
                 }
 
-                WriteFlattenedTransitions(writer, root, child.stateMachine, stateNames, warnings);
+                WriteFlattenedTransitions(writer, root, child.stateMachine, stateNames,
+                    parameterNameMap, warnings);
             }
         }
 
@@ -237,10 +249,11 @@ namespace net.puk06.AnimScript
         // ================================================================
 
         static void WriteState(ScriptTextWriter writer, AnimatorState state, string outName,
-            bool uniformWriteDefaults, string scriptDirectory, List<string> warnings)
+            bool uniformWriteDefaults, string scriptDirectory,
+            IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             var clipRef = GetClipReference(state, scriptDirectory, warnings);
-            var drivers = DriverExporter.ExportAll(state, warnings);
+            var drivers = DriverExporter.ExportAll(state, parameterNameMap, warnings);
             var controlLines = ControlExporter.Export(state, warnings);
 
             if (drivers.Count == 0 && controlLines.Count == 0)
@@ -248,7 +261,7 @@ namespace net.puk06.AnimScript
                 // --- 1行書き ---
                 var line = new StringBuilder($"state {outName}");
                 if (clipRef != null) line.Append($" = \"{clipRef}\"");
-                AppendInlineOptions(line, state, uniformWriteDefaults);
+                AppendInlineOptions(line, state, uniformWriteDefaults, parameterNameMap);
                 writer.Line(line.ToString());
                 return;
             }
@@ -261,17 +274,17 @@ namespace net.puk06.AnimScript
             if (state.speed != 1f)
                 writer.Line($"speed {ScriptTextWriter.Format(state.speed)}");
             if (state.speedParameterActive)
-                writer.Line($"speedParam {NameSanitizer.SanitizeQuiet(state.speedParameter)}");
+                writer.Line($"speedParam {GetParameterName(state.speedParameter, parameterNameMap)}");
             if (state.cycleOffset != 0f)
                 writer.Line($"cycleOffset {ScriptTextWriter.Format(state.cycleOffset)}");
             if (state.cycleOffsetParameterActive)
-                writer.Line($"cycleOffsetParam {NameSanitizer.SanitizeQuiet(state.cycleOffsetParameter)}");
+                writer.Line($"cycleOffsetParam {GetParameterName(state.cycleOffsetParameter, parameterNameMap)}");
             if (state.timeParameterActive)
-                writer.Line($"time {state.timeParameter}");
+                writer.Line($"time {GetParameterName(state.timeParameter, parameterNameMap)}");
             if (state.mirror)
                 writer.Line("mirror on");
             if (state.mirrorParameterActive)
-                writer.Line($"mirrorParam {NameSanitizer.SanitizeQuiet(state.mirrorParameter)}");
+                writer.Line($"mirrorParam {GetParameterName(state.mirrorParameter, parameterNameMap)}");
             if (state.iKOnFeet)
                 writer.Line("footIK on");
             if (!uniformWriteDefaults)
@@ -297,20 +310,21 @@ namespace net.puk06.AnimScript
         }
 
         /// <summary>state のインラインオプションを付ける。</summary>
-        static void AppendInlineOptions(StringBuilder line, AnimatorState state, bool uniformWriteDefaults)
+        static void AppendInlineOptions(StringBuilder line, AnimatorState state, bool uniformWriteDefaults,
+            IReadOnlyDictionary<string, string> parameterNameMap)
         {
             if (state.speedParameterActive)
-                line.Append($" speedParam {NameSanitizer.SanitizeQuiet(state.speedParameter)}");
+                line.Append($" speedParam {GetParameterName(state.speedParameter, parameterNameMap)}");
             if (state.speed != 1f)
                 line.Append($" speed {ScriptTextWriter.Format(state.speed)}");
             if (state.cycleOffsetParameterActive)
-                line.Append($" cycleOffsetParam {NameSanitizer.SanitizeQuiet(state.cycleOffsetParameter)}");
+                line.Append($" cycleOffsetParam {GetParameterName(state.cycleOffsetParameter, parameterNameMap)}");
             if (state.cycleOffset != 0f)
                 line.Append($" cycleOffset {ScriptTextWriter.Format(state.cycleOffset)}");
             if (state.timeParameterActive)
-                line.Append($" time {state.timeParameter}");
+                line.Append($" time {GetParameterName(state.timeParameter, parameterNameMap)}");
             if (state.mirrorParameterActive)
-                line.Append($" mirrorParam {NameSanitizer.SanitizeQuiet(state.mirrorParameter)}");
+                line.Append($" mirrorParam {GetParameterName(state.mirrorParameter, parameterNameMap)}");
             if (state.mirror)
                 line.Append(" mirror on");
             if (state.iKOnFeet)
@@ -352,7 +366,7 @@ namespace net.puk06.AnimScript
 
         static void WriteFlattenedTransition(ScriptTextWriter writer, string fromName,
             AnimatorStateTransition transition, Dictionary<AnimatorState, string> stateNames,
-            List<string> warnings)
+            IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             string toName;
             if (transition.isExit)
@@ -381,7 +395,8 @@ namespace net.puk06.AnimScript
 
             var line = new StringBuilder($"{fromName} -> {toName}");
             if (transition.conditions.Length > 0)
-                line.Append(" when ").Append(string.Join(" and ", transition.conditions.Select(FormatCondition)));
+                line.Append(" when ").Append(string.Join(" and ",
+                    transition.conditions.Select(condition => FormatCondition(condition, parameterNameMap))));
             if (fromName == "any" && transition.canTransitionToSelf)
                 line.Append(" self");
             AppendTransitionOptions(line, transition, warnings, fromName, toName);
@@ -390,7 +405,7 @@ namespace net.puk06.AnimScript
 
         static void WriteFlattenedMachineTransition(ScriptTextWriter writer, string fromName,
             AnimatorTransition transition, Dictionary<AnimatorState, string> stateNames,
-            List<string> warnings)
+            IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             string toName;
             if (transition.isExit)
@@ -419,7 +434,8 @@ namespace net.puk06.AnimScript
 
             var line = new StringBuilder($"{fromName} -> {toName}");
             if (transition.conditions.Length > 0)
-                line.Append(" when ").Append(string.Join(" and ", transition.conditions.Select(FormatCondition)));
+                line.Append(" when ").Append(string.Join(" and ",
+                    transition.conditions.Select(condition => FormatCondition(condition, parameterNameMap))));
             writer.Line(line.ToString());
         }
 
@@ -443,9 +459,17 @@ namespace net.puk06.AnimScript
                 line.Append($" offset {ScriptTextWriter.Format(transition.offset)}");
         }
 
-        static string FormatCondition(AnimatorCondition condition)
+        static string GetParameterName(string name, IReadOnlyDictionary<string, string> parameterNameMap)
         {
-            var param = NameSanitizer.SanitizeQuiet(condition.parameter);
+            return parameterNameMap.TryGetValue(name, out var mappedName)
+                ? mappedName
+                : NameSanitizer.SanitizeQuiet(name);
+        }
+
+        static string FormatCondition(AnimatorCondition condition,
+            IReadOnlyDictionary<string, string> parameterNameMap)
+        {
+            var param = GetParameterName(condition.parameter, parameterNameMap);
             switch (condition.mode)
             {
                 case AnimatorConditionMode.If:       return param;

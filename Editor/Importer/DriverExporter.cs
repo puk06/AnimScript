@@ -25,7 +25,8 @@ namespace net.puk06.AnimScript
             public List<string> Lines;
         }
 
-        public static List<ExportedDriver> ExportAll(AnimatorState state, List<string> warnings)
+        public static List<ExportedDriver> ExportAll(AnimatorState state,
+            IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             var result = new List<ExportedDriver>();
 
@@ -35,13 +36,13 @@ namespace net.puk06.AnimScript
                 var lines = new List<string>();
                 foreach (var parameter in driver.parameters)
                 {
-                    var name = NameSanitizer.SanitizeQuiet(parameter.name);
+                    var name = GetParameterName(parameter.name, parameterNameMap);
                     switch (parameter.type)
                     {
                         case VRC_AvatarParameterDriver.ChangeType.Set: lines.Add($"set {name} {ScriptTextWriter.Format(parameter.value)}"); break;
                         case VRC_AvatarParameterDriver.ChangeType.Add: lines.Add($"add {name} {ScriptTextWriter.Format(parameter.value)}"); break;
                         case VRC_AvatarParameterDriver.ChangeType.Random: lines.Add($"random {name} {ScriptTextWriter.Format(parameter.valueMin)} {ScriptTextWriter.Format(parameter.valueMax)}"); break;
-                        case VRC_AvatarParameterDriver.ChangeType.Copy: lines.Add($"copy {NameSanitizer.SanitizeQuiet(parameter.source)} -> {name}"); break;
+                        case VRC_AvatarParameterDriver.ChangeType.Copy: lines.Add($"copy {GetParameterName(parameter.source, parameterNameMap)} -> {name}"); break;
                         default: warnings.Add($"ステート「{state.name}」の driver に未対応の種類（{parameter.type}）があり、スキップしました"); break;
                     }
                 }
@@ -55,9 +56,16 @@ namespace net.puk06.AnimScript
 
         public static List<string> Export(AnimatorState state, out bool localOnly, List<string> warnings)
         {
-            var all = ExportAll(state, warnings);
+            var all = ExportAll(state, new Dictionary<string, string>(), warnings);
             localOnly = all.Count > 0 && all[0].LocalOnly;
             return all.Count > 0 ? all[0].Lines : null;
+        }
+
+        static string GetParameterName(string name, IReadOnlyDictionary<string, string> parameterNameMap)
+        {
+            return parameterNameMap.TryGetValue(name, out var mappedName)
+                ? mappedName
+                : NameSanitizer.SanitizeQuiet(name);
         }
     }
 }
