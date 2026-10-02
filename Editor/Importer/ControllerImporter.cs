@@ -32,11 +32,10 @@ namespace net.puk06.AnimScript
             writer.Line();
 
             // --- パラメータ ---
-            var parameterNames = new HashSet<string>();
             var parameterNameMap = new Dictionary<string, string>();
             foreach (var parameter in controller.parameters)
             {
-                var name = NameSanitizer.SanitizeUnique(parameter.name, parameterNames, warnings);
+                var name = NameSanitizer.EscapeParameterName(parameter.name);
                 parameterNameMap[parameter.name] = name;
                 WriteParameter(writer, parameter, name, warnings);
             }

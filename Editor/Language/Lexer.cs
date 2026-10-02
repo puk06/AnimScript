@@ -153,7 +153,7 @@ namespace net.puk06.AnimScript
                 }
 
                 // --- 識別子 / キーワード / $変数（日本語の名前もOK） ---
-                if (char.IsLetter(c) || c == '_' || c == '$')
+                if (char.IsLetter(c) || c == '_' || c == '$' || c == '\\')
                 {
                     tokens.Add(ReadIdentifier(source, ref index, ref column, Here(), diagnostics));
                     continue;
@@ -229,6 +229,20 @@ namespace net.puk06.AnimScript
                 if (char.IsLetterOrDigit(c) || c == '_')
                 {
                     index++; column++;
+                    continue;
+                }
+
+                // パラメータ名などの特殊文字をエスケープして識別子に含める
+                if (c == '\\')
+                {
+                    if (index + 1 >= source.Length || source[index + 1] == '\n')
+                    {
+                        diagnostics.Error(new SourceLocation(location.Line, column),
+                            "「\\」の後にはエスケープする文字が必要です");
+                        index++; column++;
+                        continue;
+                    }
+                    index += 2; column += 2;
                     continue;
                 }
 

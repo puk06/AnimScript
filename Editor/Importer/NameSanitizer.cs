@@ -39,6 +39,25 @@ namespace net.puk06.AnimScript
         public static string SanitizeQuiet(string name) => SanitizeCore(name);
 
         /// <summary>
+        /// パラメータ名をサニタイズせず、animscript の識別子として読めるようにエスケープする。
+        /// </summary>
+        public static string EscapeParameterName(string name)
+        {
+            var builder = new StringBuilder(name.Length + 1);
+            for (var i = 0; i < name.Length; i++)
+            {
+                var c = name[i];
+                var needsEscape = !(char.IsLetterOrDigit(c) || c == '_')
+                                  || (i == 0 && char.IsDigit(c));
+                if (needsEscape) builder.Append('\\');
+                builder.Append(c);
+            }
+
+            var escaped = builder.ToString();
+            return Keywords.Contains(name) ? "\\" + escaped : escaped;
+        }
+
+        /// <summary>
         /// 重複しない名前にする（ステート名用）。
         /// 「A B」と「A_B」が両方「A_B」になるようなケースを _2 付きで回避する。
         /// </summary>

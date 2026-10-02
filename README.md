@@ -68,6 +68,20 @@ param Grounded    : bool  = true
 - 型は `float` / `int` / `bool`
 - 初期値は省略可（省略時は 0 / false）
 - 条件（`when`）で使うパラメータは **必ず宣言が必要** です（VRChat 標準の `GestureLeft` なども）
+- パラメータ名に `+` や空白などの特殊文字を含める場合は、文字の前に `\` を付けます。宣言・参照の両方で同じように書きます。
+
+```txt
+param A\+B : float = 0
+
+layer "Example" {
+    state Idle
+    state Active
+    entry -> Idle
+    Idle -> Active when A\+B > 0
+}
+```
+
+`\` はエスケープ記号なので、実際の Animator パラメータ名は `A+B` です。Importer も特殊文字を含むパラメータをこの形式で書き出します。
 
 ## レイヤー（layer）
 

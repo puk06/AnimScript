@@ -11,6 +11,7 @@ namespace net.puk06.AnimScript
 param Speed : float = 0
 param Grounded : bool = true
 param GestureLeft : int = 0
+param A\+B : float = 0       （+ などは \ でエスケープ）
 
 ■ レイヤー
 layer ""Locomotion"" default wd off {

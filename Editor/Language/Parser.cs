@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 
 namespace net.puk06.AnimScript
 {
@@ -374,7 +375,7 @@ namespace net.puk06.AnimScript
 
             return new ParameterAst
             {
-                Name = nameToken.Text,
+                Name = UnescapeParameterName(nameToken.Text),
                 Kind = kind,
                 DefaultValue = defaultValue,
                 Location = nameToken.Location,
@@ -444,7 +445,7 @@ namespace net.puk06.AnimScript
                 else if (CheckKeyword("speedParam") || CheckKeyword("sp")) { Advance(); state.SpeedParameter = ParseParameterName("再生速度用パラメータ名"); }
                 else if (CheckKeyword("cycleOffset") || CheckKeyword("co")) { Advance(); state.CycleOffset = ParseExpression(); }
                 else if (CheckKeyword("cycleOffsetParam") || CheckKeyword("cop")) { Advance(); state.CycleOffsetParameter = ParseParameterName("Cycle Offset 用パラメータ名"); }
-                else if (CheckKeyword("time")) { Advance(); state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text; }
+                else if (CheckKeyword("time")) { Advance(); state.TimeParameter = ParseParameterName("Motion Time 用パラメータ名"); }
                 else if (CheckKeyword("wd") || CheckKeyword("writeDefault")) { var option = Advance(); state.WriteDefaults = ParseOnOff(option.Text); }
                 else if (CheckKeyword("loop")) { Advance(); state.Loop = ParseOnOff("loop"); }
                 else if (CheckKeyword("mirror")) { Advance(); state.Mirror = ParseOnOff("mirror"); }
@@ -505,7 +506,7 @@ namespace net.puk06.AnimScript
                     else if (CheckKeyword("time"))
                     {
                         Advance();
-                        state.TimeParameter = Expect(TokenKind.Identifier, "Motion Time 用パラメータ名").Text;
+                        state.TimeParameter = ParseParameterName("Motion Time 用パラメータ名");
                         ExpectEndOfLine();
                     }
                     else if (CheckKeyword("wd") || CheckKeyword("writeDefault"))
@@ -676,7 +677,7 @@ namespace net.puk06.AnimScript
                     return new DriverActionAst
                     {
                         Kind = keyword.Text == "set" ? DriverActionKind.Set : DriverActionKind.Add,
-                        Target = target.Text,
+                        Target = UnescapeParameterName(target.Text),
                         Value = value,
                         Location = keyword.Location,
                     };
@@ -689,7 +690,7 @@ namespace net.puk06.AnimScript
                     return new DriverActionAst
                     {
                         Kind = DriverActionKind.Random,
-                        Target = target.Text,
+                        Target = UnescapeParameterName(target.Text),
                         ValueMin = min,
                         ValueMax = max,
                         Location = keyword.Location,
@@ -703,8 +704,8 @@ namespace net.puk06.AnimScript
                     return new DriverActionAst
                     {
                         Kind = DriverActionKind.Copy,
-                        Source = source.Text,
-                        Target = destination.Text,
+                        Source = UnescapeParameterName(source.Text),
+                        Target = UnescapeParameterName(destination.Text),
                         Location = keyword.Location,
                     };
                 }
@@ -854,7 +855,7 @@ namespace net.puk06.AnimScript
                 var notParam = Expect(TokenKind.Identifier, "パラメータ名");
                 return new ConditionAst
                 {
-                    Param = notParam.Text,
+                    Param = UnescapeParameterName(notParam.Text),
                     Op = CondOp.IfNot,
                     Location = bang.Location,
                 };
@@ -879,7 +880,7 @@ namespace net.puk06.AnimScript
                 default:
                     return new ConditionAst
                     {
-                        Param = param.Text,
+                        Param = UnescapeParameterName(param.Text),
                         Op = CondOp.If,
                         Location = param.Location,
                     };
@@ -890,7 +891,7 @@ namespace net.puk06.AnimScript
         {
             return new ConditionAst
             {
-                Param = param.Text,
+                Param = UnescapeParameterName(param.Text),
                 Op = op,
                 Value = ParseExpression(),
                 Location = param.Location,
@@ -1002,6 +1003,25 @@ namespace net.puk06.AnimScript
         }
 
         string ParseParameterName(string what)
-            => Expect(TokenKind.Identifier, what).Text;
+            => UnescapeParameterName(Expect(TokenKind.Identifier, what).Text);
+
+        static string UnescapeParameterName(string text)
+        {
+            var builder = new StringBuilder(text.Length);
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\\' && i + 1 < text.Length)
+                {
+                    i++;
+                    if (text[i] == '$')
+                        builder.Append("$$");
+                    else
+                        builder.Append(text[i]);
+                    continue;
+                }
+                builder.Append(text[i]);
+            }
+            return builder.ToString();
+        }
     }
 }
