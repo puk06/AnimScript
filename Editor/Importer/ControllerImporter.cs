@@ -24,6 +24,18 @@ namespace net.puk06.AnimScript
         /// <summary>コントローラを animscript テキストに変換する。</summary>
         public static string Convert(AnimatorController controller, string scriptAssetPath, List<string> warnings)
         {
+            var parameterNameMap = new Dictionary<string, string>();
+            foreach (var parameter in controller.parameters)
+                parameterNameMap[parameter.name] = NameSanitizer.EscapeParameterName(parameter.name);
+            return ConvertInternal(controller, scriptAssetPath, AssetDatabase.GetAssetPath(controller),
+                warnings, parameterNameMap, false);
+        }
+
+        static string ConvertInternal(AnimatorController controller, string scriptAssetPath,
+            string controllerAssetPath, List<string> warnings,
+            IReadOnlyDictionary<string, string> parameterNameMap,
+            bool exportEmbeddedBlendTrees)
+        {
             var writer = new ScriptTextWriter();
             var scriptDirectory = AnimScriptPaths.GetDirectoryPath(scriptAssetPath);
 
@@ -32,12 +44,9 @@ namespace net.puk06.AnimScript
             writer.Line();
 
             // --- パラメータ ---
-            var parameterNameMap = new Dictionary<string, string>();
             foreach (var parameter in controller.parameters)
             {
-                var name = NameSanitizer.EscapeParameterName(parameter.name);
-                parameterNameMap[parameter.name] = name;
-                WriteParameter(writer, parameter, name, warnings);
+                WriteParameter(writer, parameter, parameterNameMap[parameter.name], warnings);
             }
             if (controller.parameters.Length > 0)
                 writer.Line();
@@ -46,6 +55,7 @@ namespace net.puk06.AnimScript
             for (var i = 0; i < controller.layers.Length; i++)
             {
                 WriteLayer(writer, controller.layers[i], isFirst: i == 0, scriptDirectory,
+                    scriptAssetPath, controllerAssetPath, exportEmbeddedBlendTrees,
                     parameterNameMap, warnings);
                 if (i < controller.layers.Length - 1)
                     writer.Line();
@@ -61,7 +71,10 @@ namespace net.puk06.AnimScript
             var directory = AnimScriptPaths.GetDirectoryPath(controllerPath);
             var scriptPath = $"{directory}/{controller.name}.animscript";
 
-            var text = Convert(controller, scriptPath, warnings);
+            var parameterNameMap = new Dictionary<string, string>();
+            foreach (var parameter in controller.parameters)
+                parameterNameMap[parameter.name] = NameSanitizer.EscapeParameterName(parameter.name);
+            var text = ConvertInternal(controller, scriptPath, controllerPath, warnings, parameterNameMap, true);
 
             // 日本語コメントを含むので BOM 付き UTF-8 で書く（エディタでの文字化け防止）
             File.WriteAllText(scriptPath, text, new UTF8Encoding(true));
@@ -100,7 +113,9 @@ namespace net.puk06.AnimScript
         // ================================================================
 
         static void WriteLayer(ScriptTextWriter writer, AnimatorControllerLayer layer, bool isFirst,
-            string scriptDirectory, IReadOnlyDictionary<string, string> parameterNameMap,
+            string scriptDirectory, string scriptAssetPath, string controllerAssetPath,
+            bool exportEmbeddedBlendTrees,
+            IReadOnlyDictionary<string, string> parameterNameMap,
             List<string> warnings)
         {
             var stateMachine = layer.stateMachine;
@@ -125,7 +140,9 @@ namespace net.puk06.AnimScript
             var usedNames = new HashSet<string>();
             CollectNames(stateMachine, stateNames, usedNames, warnings);
             WriteFlattenedStates(writer, stateMachine, stateMachine, stateNames,
-                uniformWriteDefaults, scriptDirectory, parameterNameMap, warnings);
+                uniformWriteDefaults, scriptDirectory, scriptAssetPath, controllerAssetPath,
+                exportEmbeddedBlendTrees,
+                parameterNameMap, warnings);
 
             var entryState = FindEntryState(stateMachine);
             if (entryState != null)
@@ -158,6 +175,7 @@ namespace net.puk06.AnimScript
         static void WriteFlattenedStates(ScriptTextWriter writer, AnimatorStateMachine root,
             AnimatorStateMachine current, Dictionary<AnimatorState, string> stateNames,
             bool rootUniformWriteDefaults, string scriptDirectory,
+            string scriptAssetPath, string controllerAssetPath, bool exportEmbeddedBlendTrees,
             IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
             foreach (var child in current.states
@@ -166,6 +184,7 @@ namespace net.puk06.AnimScript
             {
                 var uniform = current == root ? rootUniformWriteDefaults : false;
                 WriteState(writer, child.state, stateNames[child.state], uniform, scriptDirectory,
+                    scriptAssetPath, controllerAssetPath, exportEmbeddedBlendTrees,
                     parameterNameMap, warnings);
             }
 
@@ -176,7 +195,8 @@ namespace net.puk06.AnimScript
                 writer.Line();
                 writer.Comment($"ここから先はサブステート「{child.stateMachine.name}」の内部です");
                 WriteFlattenedStates(writer, root, child.stateMachine, stateNames,
-                    rootUniformWriteDefaults, scriptDirectory, parameterNameMap, warnings);
+                    rootUniformWriteDefaults, scriptDirectory, scriptAssetPath,
+                    controllerAssetPath, exportEmbeddedBlendTrees, parameterNameMap, warnings);
                 writer.Comment("サブステート終了です");
             }
         }
@@ -250,9 +270,11 @@ namespace net.puk06.AnimScript
 
         static void WriteState(ScriptTextWriter writer, AnimatorState state, string outName,
             bool uniformWriteDefaults, string scriptDirectory,
+            string scriptAssetPath, string controllerAssetPath, bool exportEmbeddedBlendTrees,
             IReadOnlyDictionary<string, string> parameterNameMap, List<string> warnings)
         {
-            var clipRef = GetClipReference(state, scriptDirectory, warnings);
+            var clipRef = GetClipReference(state, scriptDirectory, scriptAssetPath,
+                controllerAssetPath, exportEmbeddedBlendTrees, warnings);
             var drivers = DriverExporter.ExportAll(state, parameterNameMap, warnings);
             var controlLines = ControlExporter.Export(state, warnings);
 
@@ -336,9 +358,10 @@ namespace net.puk06.AnimScript
         /// <summary>
         /// モーション参照文字列を返す。
         /// スクリプトのフォルダ以下なら相対パス、それ以外は Assets/ からのパス。
-        /// motion 無し・アセットとして保存されていないモーションなら null。
+        /// ConvertAndSave ではコントローラー内蔵の BlendTree をアセット化して参照する。
         /// </summary>
-        static string GetClipReference(AnimatorState state, string scriptDirectory, List<string> warnings)
+        static string GetClipReference(AnimatorState state, string scriptDirectory, string scriptAssetPath,
+            string controllerAssetPath, bool exportEmbeddedBlendTrees, List<string> warnings)
         {
             var motion = state.motion;
             if (motion == null) return null;
@@ -346,8 +369,12 @@ namespace net.puk06.AnimScript
             if (motion is AnimationClip || motion is BlendTree)
             {
                 var path = AssetDatabase.GetAssetPath(motion);
-                if (string.IsNullOrEmpty(path))
+                var isEmbeddedBlendTree = motion is BlendTree && path == controllerAssetPath;
+                if (string.IsNullOrEmpty(path) || isEmbeddedBlendTree)
                 {
+                    if (motion is BlendTree embeddedBlendTree && exportEmbeddedBlendTrees)
+                        return ExportEmbeddedBlendTree(embeddedBlendTree, state, scriptDirectory, scriptAssetPath, warnings);
+
                     warnings.Add($"ステート「{state.name}」のクリップはアセットとして保存されていないため、スキップしました");
                     return null;
                 }
@@ -358,6 +385,73 @@ namespace net.puk06.AnimScript
 
             warnings.Add($"ステート「{state.name}」のモーション（{motion.GetType().Name}）はアセットパスを取得できないため、空ステートとして書き出しました");
             return null;
+        }
+
+        static string ExportEmbeddedBlendTree(BlendTree source, AnimatorState state,
+            string scriptDirectory, string scriptAssetPath, List<string> warnings)
+        {
+            var controllerName = Path.GetFileNameWithoutExtension(scriptAssetPath);
+            controllerName = NameSanitizer.SanitizeQuiet(controllerName);
+            var stateName = NameSanitizer.SanitizeQuiet(state.name);
+            var assetDirectory = GetEmbeddedBlendTreeDirectory(scriptDirectory, controllerName);
+            var assetPath = AssetDatabase.GenerateUniqueAssetPath(
+                $"{assetDirectory}/{controllerName}_BlendTree_{stateName}.asset");
+
+            try
+            {
+                var nestedTrees = new List<BlendTree>();
+                var root = CloneBlendTree(source, nestedTrees);
+                AssetDatabase.CreateAsset(root, assetPath);
+                foreach (var nested in nestedTrees)
+                    AssetDatabase.AddObjectToAsset(nested, assetPath);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(assetPath);
+
+                var prefix = scriptDirectory + "/";
+                return assetPath.StartsWith(prefix) ? assetPath.Substring(prefix.Length) : assetPath;
+            }
+            catch (System.Exception exception)
+            {
+                warnings.Add($"ステート「{state.name}」の内蔵 BlendTree を「{assetPath}」へ書き出せませんでした: {exception.Message}");
+                return null;
+            }
+        }
+
+        static string GetEmbeddedBlendTreeDirectory(string scriptDirectory, string controllerName)
+        {
+            var rootDirectory = scriptDirectory + "/AnimScript";
+            if (!AssetDatabase.IsValidFolder(rootDirectory))
+                AssetDatabase.CreateFolder(scriptDirectory, "AnimScript");
+
+            var controllerDirectory = rootDirectory + "/" + controllerName;
+            if (!AssetDatabase.IsValidFolder(controllerDirectory))
+                AssetDatabase.CreateFolder(rootDirectory, controllerName);
+
+            return controllerDirectory;
+        }
+
+        static BlendTree CloneBlendTree(BlendTree source, List<BlendTree> nestedTrees)
+        {
+            var clone = new BlendTree();
+            clone.name = source.name;
+            clone.blendType = source.blendType;
+            clone.blendParameter = source.blendParameter;
+            clone.blendParameterY = source.blendParameterY;
+            clone.minThreshold = source.minThreshold;
+            clone.maxThreshold = source.maxThreshold;
+            clone.useAutomaticThresholds = source.useAutomaticThresholds;
+
+            var children = source.children;
+            for (var i = 0; i < children.Length; i++)
+            {
+                if (children[i].motion is BlendTree childTree)
+                {
+                    children[i].motion = CloneBlendTree(childTree, nestedTrees);
+                    nestedTrees.Add((BlendTree)children[i].motion);
+                }
+            }
+            clone.children = children;
+            return clone;
         }
 
         // ================================================================
