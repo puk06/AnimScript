@@ -383,6 +383,8 @@ Animator Controller 内に直接埋め込まれている BlendTree は、Importe
 
 **Tools > ぷこのつーる > AnimScript Builder** の「コントローラからインポート」、または **Project ウィンドウで AnimatorController を右クリック → AnimScript/animscript に変換** から使えます。
 
+Project ウィンドウで `.animscript` ファイルを右クリックし、**AnimScript > AnimScriptをビルド確認** を選ぶと、AnimatorController を生成せずにスクリプトの解析・検証を実行できます。
+
 ```
 AnimatorController (.controller)
         │

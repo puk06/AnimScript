@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -26,13 +27,16 @@ namespace net.puk06.AnimScript
         bool _showCheatSheet;
         bool _showImport;
         bool _showCheck;
+        bool _showScriptCheck;
 
         AnimatorController _importSource;
         AnimatorController _checkSource;
+        string _scriptCheckPath;
         string _importResultMessage;
         string _lastImportScriptPath;
         List<Diagnostic> _checkDiagnostics;
         List<string> _checkWarnings;
+        List<Diagnostic> _scriptCheckDiagnostics;
 
         internal static void OpenCheck(AnimatorController controller)
         {
@@ -41,6 +45,17 @@ namespace net.puk06.AnimScript
             window._checkSource = controller;
             window._showCheck = true;
             window.RunCheck();
+            window.Show();
+            window.Focus();
+        }
+
+        internal static void OpenScriptCheck(string scriptPath)
+        {
+            var window = GetWindow<AnimScriptWindow>("AnimScript");
+            window.minSize = new Vector2(420, 360);
+            window._scriptCheckPath = scriptPath;
+            window._showScriptCheck = true;
+            window.RunScriptCheck();
             window.Show();
             window.Focus();
         }
@@ -54,7 +69,7 @@ namespace net.puk06.AnimScript
                 EditorGUILayout.LabelField("AnimScript", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField(
                     "NDMF ビルド時に .animscript から AnimatorController が自動生成されます。\n" +
-                    "このウィンドウではコントローラからの逆変換（インポート）と構文リファレンスが使えます。",
+                    "このウィンドウでは単体チェック、コントローラからの逆変換（インポート）、構文リファレンスが使えます。",
                     EditorStyles.wordWrappedMiniLabel);
 
                 EditorGUILayout.Space();
@@ -64,8 +79,83 @@ namespace net.puk06.AnimScript
                 DrawCheckSection();
 
                 EditorGUILayout.Space();
+                DrawScriptCheckSection();
+
+                EditorGUILayout.Space();
                 DrawCheatSheet();
             }
+        }
+
+        void DrawScriptCheckSection()
+        {
+            _showScriptCheck = EditorGUILayout.Foldout(_showScriptCheck, "AnimScriptファイルをビルド確認", true);
+            if (!_showScriptCheck) return;
+
+            EditorGUILayout.LabelField(
+                "AnimScript の解析・検証を、AnimatorControllerを生成せずに実行します。",
+                EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.LabelField("ファイル", _scriptCheckPath ?? "（未選択）");
+
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_scriptCheckPath)))
+            {
+                if (GUILayout.Button("チェックを実行", GUILayout.Height(28)))
+                    RunScriptCheck();
+            }
+
+            if (_scriptCheckDiagnostics == null) return;
+
+            var errors = _scriptCheckDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
+            var warnings = _scriptCheckDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Warning);
+            var infos = _scriptCheckDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Info);
+            var type = errors > 0 ? MessageType.Error : warnings > 0 ? MessageType.Warning : MessageType.Info;
+            EditorGUILayout.HelpBox($"エラー {errors} 件 / 警告 {warnings} 件 / 情報 {infos} 件", type);
+
+            foreach (var diagnostic in _scriptCheckDiagnostics)
+            {
+                var prefix = diagnostic.Severity == DiagnosticSeverity.Error ? "エラー" :
+                    diagnostic.Severity == DiagnosticSeverity.Warning ? "警告" : "情報";
+                EditorGUILayout.LabelField(
+                    $"[{prefix}] {diagnostic.Location.Line}行目: {diagnostic.Message}",
+                    EditorStyles.wordWrappedMiniLabel);
+            }
+        }
+
+        void RunScriptCheck()
+        {
+            if (string.IsNullOrEmpty(_scriptCheckPath)) return;
+
+            var diagnostics = new DiagnosticBag();
+            try
+            {
+                var source = File.ReadAllText(_scriptCheckPath);
+                AnimatorCompiler.ParseAndValidate(source, diagnostics);
+            }
+            catch (System.Exception exception)
+            {
+                diagnostics.Error(new SourceLocation(1, 1),
+                    $"スクリプトファイルの読み込みに失敗しました: {exception.Message}");
+            }
+
+            _scriptCheckDiagnostics = diagnostics.ToList();
+            foreach (var diagnostic in _scriptCheckDiagnostics)
+            {
+                var message = $"[AnimScript] {_scriptCheckPath} ({diagnostic.Location.Line}行目): {diagnostic.Message}";
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    Debug.LogError(message);
+                else if (diagnostic.Severity == DiagnosticSeverity.Warning)
+                    Debug.LogWarning(message);
+                else
+                    Debug.Log(message);
+            }
+
+            var errorCount = _scriptCheckDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
+            var warningCount = _scriptCheckDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Warning);
+            ShowNotification(new GUIContent(errorCount > 0
+                ? $"チェック完了: エラー {errorCount} 件"
+                : warningCount > 0
+                    ? $"チェック完了: 警告 {warningCount} 件"
+                    : "チェック完了: 問題ありません"));
+            Repaint();
         }
 
         void DrawCheckSection()
