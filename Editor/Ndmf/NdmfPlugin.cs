@@ -32,10 +32,10 @@ namespace net.puk06.AnimScript.Editor.Ndmf
                 "en",
                 new()
                 {
-                    { "Error.ScriptFileNotFound", "An error occurred in component {0}\nError: Script file not found in Assets.\nScript file: {1}" },
-                    { "Error.ScriptFileNotValid", "An error occurred in component {0}\nError: Script file is not a .animscript file.\nScript file: {1}" },
-                    { "Error.ScriptFileReadFailed", "An error occurred in component {0}\nFailed to read script file\nScript path: {1}\n\n--- Error ---\n{2}" },
-                    { "Error.ScriptFileCompileFailed", "An error occurred in component {0}\nFailed to compile script file\nScript path: {1}\n\n--- Error ---\n{2}" }
+                    { "Error.ScriptFileNotFound", "Error in component '{0}'\n\nError: Script file not found in Assets.\nScript file: {1}" },
+                    { "Error.ScriptFileNotValid", "Error in component '{0}'\n\nError: Script file is not a .animscript file.\nScript file: {1}" },
+                    { "Error.ScriptFileReadFailed", "Error in component '{0}'\n\nError: Failed to read script file\nScript path: {1}\n\n--- Error ---\n{2}" },
+                    { "Error.ScriptFileCompileFailed", "Error in component '{0}'\n\nError: Failed to compile script file\nScript path: {1}\n\n--- Error ---\n{2}" }
                 }
             }
         };
