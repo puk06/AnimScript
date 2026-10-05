@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -24,10 +25,25 @@ namespace net.puk06.AnimScript
         Vector2 _scroll;
         bool _showCheatSheet;
         bool _showImport;
+        bool _showCheck;
 
         AnimatorController _importSource;
+        AnimatorController _checkSource;
         string _importResultMessage;
         string _lastImportScriptPath;
+        List<Diagnostic> _checkDiagnostics;
+        List<string> _checkWarnings;
+
+        internal static void OpenCheck(AnimatorController controller)
+        {
+            var window = GetWindow<AnimScriptWindow>("AnimScript");
+            window.minSize = new Vector2(420, 360);
+            window._checkSource = controller;
+            window._showCheck = true;
+            window.RunCheck();
+            window.Show();
+            window.Focus();
+        }
 
         void OnGUI()
         {
@@ -45,8 +61,94 @@ namespace net.puk06.AnimScript
                 DrawImportSection();
 
                 EditorGUILayout.Space();
+                DrawCheckSection();
+
+                EditorGUILayout.Space();
                 DrawCheatSheet();
             }
+        }
+
+        void DrawCheckSection()
+        {
+            _showCheck = EditorGUILayout.Foldout(_showCheck, "Animator Controllerをチェック", true);
+            if (!_showCheck) return;
+
+            EditorGUILayout.LabelField(
+                "コントローラを animscript に変換した場合と同じ内容で解析し、\n" +
+                "遷移先・パラメータ・到達不能ステートなどの問題を検出します。",
+                EditorStyles.wordWrappedMiniLabel);
+
+            _checkSource = EditorGUILayout.ObjectField(
+                "コントローラ", _checkSource, typeof(AnimatorController), false) as AnimatorController;
+
+            using (new EditorGUI.DisabledScope(_checkSource == null))
+            {
+                if (GUILayout.Button("チェックを実行", GUILayout.Height(28)))
+                    RunCheck();
+            }
+
+            if (_checkDiagnostics == null && _checkWarnings == null) return;
+
+            var diagnostics = _checkDiagnostics ?? new List<Diagnostic>();
+            var errors = diagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
+            var warnings = diagnostics.Count(d => d.Severity == DiagnosticSeverity.Warning) + (_checkWarnings?.Count ?? 0);
+            var infos = diagnostics.Count(d => d.Severity == DiagnosticSeverity.Info);
+            var type = errors > 0 ? MessageType.Error : warnings > 0 ? MessageType.Warning : MessageType.Info;
+            EditorGUILayout.HelpBox($"エラー {errors} 件 / 警告 {warnings} 件 / 情報 {infos} 件", type);
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var prefix = diagnostic.Severity == DiagnosticSeverity.Error ? "エラー" :
+                    diagnostic.Severity == DiagnosticSeverity.Warning ? "警告" : "情報";
+                EditorGUILayout.LabelField(
+                    $"[{prefix}] {diagnostic.Location.Line}行目: {diagnostic.Message}",
+                    EditorStyles.wordWrappedMiniLabel);
+            }
+
+            if (_checkWarnings != null)
+            {
+                // 遷移時間の警告は変換時の注意であり、構造チェックの結果には含めない。
+                foreach (var warning in _checkWarnings.Where(w => !w.Contains("遷移時間")))
+                    EditorGUILayout.LabelField($"[変換警告] {warning}", EditorStyles.wordWrappedMiniLabel);
+            }
+        }
+
+        void RunCheck()
+        {
+            if (_checkSource == null) return;
+
+            _checkDiagnostics = new List<Diagnostic>();
+            var conversionWarnings = new List<string>();
+            var scriptText = ControllerImporter.Convert(_checkSource, conversionWarnings);
+            // 名前の変換は保存時の出力上の注意であり、構造チェックの結果には含めない。
+            _checkWarnings = conversionWarnings
+                .Where(warning => !warning.StartsWith("名前「"))
+                .ToList();
+            var diagnostics = new DiagnosticBag();
+            AnimatorCompiler.ParseAndValidate(scriptText, diagnostics);
+            _checkDiagnostics = diagnostics.ToList();
+
+            foreach (var warning in _checkWarnings)
+                Debug.LogWarning($"[AnimScript] {_checkSource.name}: {warning}", _checkSource);
+            foreach (var diagnostic in _checkDiagnostics)
+            {
+                var message = $"[AnimScript] {_checkSource.name} ({diagnostic.Location.Line}行目): {diagnostic.Message}";
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    Debug.LogError(message, _checkSource);
+                else if (diagnostic.Severity == DiagnosticSeverity.Warning)
+                    Debug.LogWarning(message, _checkSource);
+                else
+                    Debug.Log(message, _checkSource);
+            }
+
+            var errorCount = _checkDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
+            var warningCount = _checkDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Warning) + _checkWarnings.Count;
+            ShowNotification(new GUIContent(errorCount > 0
+                ? $"チェック完了: エラー {errorCount} 件"
+                : warningCount > 0
+                    ? $"チェック完了: 警告 {warningCount} 件"
+                    : "チェック完了: 問題ありません"));
+            Repaint();
         }
 
         // ================================================================

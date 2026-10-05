@@ -82,6 +82,20 @@ namespace net.puk06.AnimScript
             return scriptPath;
         }
 
+        /// <summary>AnimatorController を .animscript に変換し、内容を返す。</summary>
+        public static string Convert(AnimatorController controller, List<string> warnings)
+        {
+            var controllerPath = AssetDatabase.GetAssetPath(controller);
+            var directory = AnimScriptPaths.GetDirectoryPath(controllerPath);
+            var scriptPath = $"{directory}/{controller.name}.animscript";
+
+            var parameterNameMap = new Dictionary<string, string>();
+            foreach (var parameter in controller.parameters)
+                parameterNameMap[parameter.name] = NameSanitizer.EscapeParameterName(parameter.name);
+
+            return ConvertInternal(controller, scriptPath, controllerPath, warnings, parameterNameMap, false);
+        }
+
         // ================================================================
         // パラメータ
         // ================================================================
@@ -372,6 +386,9 @@ namespace net.puk06.AnimScript
         {
             var motion = state.motion;
             if (motion == null) return null;
+
+            // Controller check only validates script structure. BlendTree は対象外にする。
+            if (motion is BlendTree && !exportEmbeddedBlendTrees) return null;
 
             if (motion is AnimationClip || motion is BlendTree)
             {

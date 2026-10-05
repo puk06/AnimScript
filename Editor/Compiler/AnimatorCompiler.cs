@@ -31,7 +31,10 @@ namespace net.puk06.AnimScript
         // 解析・検証
         // ================================================================
 
-        static AnimScriptAst? ParseAndValidate(string source, DiagnosticBag diagnostics)
+        /// <summary>
+        /// animscript の内容を解析し、検証する。
+        /// </summary>
+        public static AnimScriptAst? ParseAndValidate(string source, DiagnosticBag diagnostics)
         {
             var ast = Parser.Parse(source, diagnostics);
 
