@@ -161,6 +161,15 @@ namespace net.puk06.AnimScript
                         "entry -> ステート名 はデフォルトステートの指定なので、when / exitTime / dur / offset / self は付けられません");
             }
 
+            // Entry の最初の区間は無条件のデフォルト遷移として許可されるが、
+            // それ以外の遷移は condition も exitTime もないと、意図しない無条件遷移になる。
+            var transitionStart = chain[0] == "entry" ? 1 : 0;
+            if (transition.Condition == null
+                && transition.ExitTime == null
+                && chain.Count - transitionStart >= 2)
+                diagnostics.Warning(transition.Location,
+                    "遷移に condition も exitTime もありません。意図しない無条件遷移の場合は when または exitTime を指定してください");
+
             // any 始まり
             if (chain[0] == "any" && chain[chain.Count - 1] == "exit")
                 diagnostics.Error(transition.Location, "any から exit への遷移は作れません（Unity の仕様上、AnyState は Exit へ遷移できません）");

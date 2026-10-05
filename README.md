@@ -369,6 +369,7 @@ Animator Controller 内に直接埋め込まれている BlendTree は、Importe
 
 - 「どこからも遷移できません」… 到達不能なステートがあります
 - 「entry -> が無いため…」… 最初のステートがデフォルトになります
+- 「遷移に condition も exitTime もありません」… 意図しない遷移の場合は `when` または `exitTime` を指定してください
 - 「driver の対象パラメータが param 宣言されていません」… 意図的なら無視して OK
 
 # 注意点・制限
