@@ -1,8 +1,12 @@
 #nullable enable
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.localization;
 using net.puk06.AnimScript.Editor.Ndmf;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +14,42 @@ using UnityEngine;
 [assembly: ExportsPlugin(typeof(NdmfPlugin))]
 namespace net.puk06.AnimScript.Editor.Ndmf
 {
+    internal static class NdmfLocalizer
+    {
+        private static Dictionary<string, Dictionary<string, string>> _localizations = new()
+        {
+            {
+                "ja",
+                new()
+                {
+                    { "Error.ScriptFileNotFound", "コンポーネント '{0}' でエラーが発生しました\n\nエラー内容: スクリプトファイルがAssets内に見つかりません。\nスクリプトファイル: {1}" },
+                    { "Error.ScriptFileNotValid", "コンポーネント '{0}' でエラーが発生しました\n\nエラー内容: スクリプトファイルが .animscript ファイルではありません。\nスクリプトファイル: {1}" },
+                    { "Error.ScriptFileReadFailed", "コンポーネント '{0}' でエラーが発生しました\n\nエラー内容: スクリプトファイルの読み込みに失敗しました\nスクリプトパス: {1}\n\n--- エラー ---\n{2}" },
+                    { "Error.ScriptFileCompileFailed", "コンポーネント '{0}' でエラーが発生しました\n\nエラー内容: スクリプトファイルのコンパイルに失敗しました\nスクリプトパス: {1}\n\n--- エラー ---\n{2}" }
+                }
+            },
+            {
+                "en",
+                new()
+                {
+                    { "Error.ScriptFileNotFound", "An error occurred in component {0}\nError: Script file not found in Assets.\nScript file: {1}" },
+                    { "Error.ScriptFileNotValid", "An error occurred in component {0}\nError: Script file is not a .animscript file.\nScript file: {1}" },
+                    { "Error.ScriptFileReadFailed", "An error occurred in component {0}\nFailed to read script file\nScript path: {1}\n\n--- Error ---\n{2}" },
+                    { "Error.ScriptFileCompileFailed", "An error occurred in component {0}\nFailed to compile script file\nScript path: {1}\n\n--- Error ---\n{2}" }
+                }
+            }
+        };
+        
+        internal static readonly Localizer Localizer = new("en", () =>
+        {
+            return new()
+            {
+                ("en", key => _localizations["en"].TryGetValue(key, out var value) ? value : key),
+                ("ja", key => _localizations["ja"].TryGetValue(key, out var value) ? value : key)
+            };
+        });
+    }
+
     internal class NdmfPlugin : Plugin<NdmfPlugin>
     {
         public override string QualifiedName => "net.puk06.animscript";
@@ -43,13 +83,25 @@ namespace net.puk06.AnimScript.Editor.Ndmf
                 var scriptPath = AssetDatabase.GetAssetPath(pucoco.ScriptFile);
                 if (string.IsNullOrEmpty(scriptPath))
                 {
-                    Debug.LogWarning($"[AnimScript] Pucoco 「{pucoco.name}」の ScriptFile が Assets 内に見つかりません", pucoco);
+                    ErrorReport.ReportError(
+                        NdmfLocalizer.Localizer,
+                        ErrorSeverity.NonFatal,
+                        "Error.ScriptFileNotFound",
+                        pucoco,
+                        pucoco.ScriptFile.name
+                    );
                     continue;
                 }
 
-                if (!scriptPath.EndsWith(".animscript", System.StringComparison.OrdinalIgnoreCase))
+                if (!scriptPath.EndsWith(".animscript", StringComparison.OrdinalIgnoreCase))
                 {
-                    Debug.LogWarning($"[AnimScript] Pucoco 「{pucoco.name}」の ScriptFile は .animscript ファイルではありません", pucoco);
+                    ErrorReport.ReportError(
+                        NdmfLocalizer.Localizer,
+                        ErrorSeverity.NonFatal,
+                        "Error.ScriptFileNotAnimScript",
+                        pucoco,
+                        scriptPath
+                    );
                     continue;
                 }
 
@@ -58,9 +110,16 @@ namespace net.puk06.AnimScript.Editor.Ndmf
                 {
                     source = File.ReadAllText(scriptPath);
                 }
-                catch (System.Exception exception)
+                catch (Exception exception)
                 {
-                    Debug.LogError($"[AnimScript] 「{scriptPath}」の読み込みに失敗しました: {exception.Message}", pucoco);
+                    ErrorReport.ReportError(
+                        NdmfLocalizer.Localizer,
+                        ErrorSeverity.NonFatal,
+                        "Error.ScriptFileReadFailed",
+                        pucoco,
+                        scriptPath,
+                        exception
+                    );
                     continue;
                 }
 
@@ -87,7 +146,23 @@ namespace net.puk06.AnimScript.Editor.Ndmf
                 }
 
                 if (diagnostics.HasErrors)
+                {
+                    var fileName = Path.GetFileName(scriptPath);
+                    ErrorReport.ReportError(
+                        NdmfLocalizer.Localizer,
+                        ErrorSeverity.NonFatal,
+                        "Error.ScriptFileCompileFailed",
+                        pucoco,
+                        scriptPath,
+                        string.Join('\n',
+                            diagnostics
+                                .ToList()
+                                .Where(i => i.Severity == DiagnosticSeverity.Error)
+                                .Select(i => $"{i.Location.Line} : {i.Message}")
+                        )
+                    );
                     continue;
+                }
 
                 var animator = pucoco.gameObject.AddComponent<ModularAvatarMergeAnimator>();
                 animator.layerType = pucoco.LayerType;
@@ -117,7 +192,7 @@ namespace net.puk06.AnimScript.Editor.Ndmf
             foreach (var component in components)
             {
                 if (component == null) continue;
-                Object.DestroyImmediate(component);
+                UnityEngine.Object.DestroyImmediate(component);
             }
         }
     }
