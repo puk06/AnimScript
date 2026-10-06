@@ -1,7 +1,7 @@
 {
   "name": "net.puk06.animscript",
   "displayName": "AnimScript",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "vpmDependencies": {
     "nadena.dev.ndmf": ">=1.11.0",
     "nadena.dev.modular-avatar": ">=1.13.0"
@@ -13,5 +13,5 @@
   },
   "unity": "2022.3",
   "description": "AnimScript is a script language for creating animator controllers. It allows you to create complex animator controllers with simple scripts.",
-  "url": "https://github.com/puk06/AnimScript/releases/download/v0.9.0/net.puk06.animscript-v0.9.0.zip?"
+  "url": "https://github.com/puk06/AnimScript/releases/download/v0.10.0/net.puk06.animscript-v0.10.0.zip?"
 }
