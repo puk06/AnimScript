@@ -385,6 +385,8 @@ Animator Controller 内に直接埋め込まれている BlendTree は、Importe
 
 Project ウィンドウで `.animscript` ファイルを右クリックし、**AnimScript > AnimScriptをビルド確認** を選ぶと、AnimatorController を生成せずにスクリプトの解析・検証を実行できます。
 
+`.animscript` を編集してUnityが再インポートすると、同じ解析・検証が自動実行されます。エラーや警告はConsoleに行番号付きで表示されます。
+
 ```
 AnimatorController (.controller)
         │
