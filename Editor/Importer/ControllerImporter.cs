@@ -570,7 +570,8 @@ namespace net.puk06.AnimScript
             }
             else
             {
-                warnings.Add($"「{fromName} -> {toName}」の遷移時間は「割合（%）」指定のため、秒指定には変換されませんでした");
+                if (transition.duration != 0.25f)
+                    line.Append($" dur {ScriptTextWriter.Format(transition.duration * 100f)}%");
             }
 
             if (transition.offset != 0f)

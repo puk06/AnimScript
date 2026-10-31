@@ -59,8 +59,11 @@ namespace net.puk06.AnimScript
 
             if (ast.Duration != null)
             {
-                transition.HasFixedDuration = true;
-                transition.Duration = (float)ast.Duration.Const();
+                transition.HasFixedDuration = ast.DurationUnit == TransitionDurationUnit.Fixed;
+                var duration = (float)ast.Duration.Const();
+                if (ast.DurationUnit == TransitionDurationUnit.Normalized)
+                    duration /= 100f;
+                transition.Duration = duration;
             }
 
             if (ast.Offset != null)

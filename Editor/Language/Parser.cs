@@ -815,6 +815,11 @@ namespace net.puk06.AnimScript
                     if (transition.Duration != null)
                         throw Error(keyword, "dur は1回だけ指定できます");
                     transition.Duration = ParseExpression();
+                    if (Current.Kind == TokenKind.Percent)
+                    {
+                        Advance();
+                        transition.DurationUnit = TransitionDurationUnit.Normalized;
+                    }
                 }
                 else if (CheckKeyword("offset"))
                 {

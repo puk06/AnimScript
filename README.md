@@ -245,6 +245,7 @@ any   -> Idle self                         // self … 自分自身への遷移�
 | `when 条件` | 遷移条件（`and` で複数指定可） |
 | `exitTime 数値` | Exit Time。**書くと HasExitTime が ON**、書かなければ OFF |
 | `dur 数値` | 遷移時間（秒） |
+| `dur 数値%` | 遷移時間（割合。遷移元クリップ長に対する％） |
 | `offset 数値` | 遷移先クリップの再生位置オフセット |
 | `self` | AnyState 遷移で canTransitionToSelf を ON（`any` からのみ） |
 
@@ -406,7 +407,6 @@ AnimatorController (.controller)
   `// ここから先はサブステート「XXX」の内部です`
   `// サブステート終了です`
 - **Trigger 型パラメータ** は bool として書き出されます
-- **遷移時間が割合（%）指定**のものは秒指定に変換されません（警告が出ます）
 - Unity 側でスペースや記号を含む名前が使われている場合、animscript の識別子として使える形に変換されます（`A B` → `A_B` など）
 
 ---

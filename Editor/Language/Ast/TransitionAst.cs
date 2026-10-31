@@ -3,6 +3,17 @@ using System.Collections.Generic;
 namespace net.puk06.AnimScript
 {
     /// <summary>
+    /// 遷移時間の単位。
+    /// </summary>
+    internal enum TransitionDurationUnit
+    {
+        /// <summary>秒（fixed duration）。</summary>
+        Fixed,
+        /// <summary>割合（normalized duration）。遷移元クリップの長さに対する％。</summary>
+        Normalized,
+    }
+
+    /// <summary>
     /// 遷移定義。`A -> B -> C when X dur 0.2 offset 0.1` のような1行。
     ///
     /// Chain はノード名の並び（"entry" / "exit" / "any" / ステート名。$変数を含むことがある）。
@@ -19,8 +30,11 @@ namespace net.puk06.AnimScript
         /// <summary>exitTime 指定。null なら hasExitTime = false。</summary>
         public ExprAst ExitTime { get; set; }
 
-        /// <summary>dur 指定（遷移時間・秒）。</summary>
+        /// <summary>dur 指定（遷移時間）。</summary>
         public ExprAst Duration { get; set; }
+
+        /// <summary>dur の単位。既定値は秒（Fixed）。</summary>
+        public TransitionDurationUnit DurationUnit { get; set; } = TransitionDurationUnit.Fixed;
 
         /// <summary>offset 指定（遷移先クリップの再生位置）。</summary>
         public ExprAst Offset { get; set; }
