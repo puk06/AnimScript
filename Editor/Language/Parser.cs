@@ -814,7 +814,8 @@ namespace net.puk06.AnimScript
                     var keyword = Advance();
                     if (transition.Duration != null)
                         throw Error(keyword, "dur は1回だけ指定できます");
-                    transition.Duration = ParseExpression();
+                    // % は「割合指定」の単位としても使うため、式の中では % を modulo 演算子として解釈しない
+                    transition.Duration = ParseExpression(allowPercentAsModulo: false);
                     if (Current.Kind == TokenKind.Percent)
                     {
                         Advance();
@@ -961,27 +962,28 @@ namespace net.puk06.AnimScript
         // ================================================================
 
         /// <summary>式を解析する。数値を書ける場所ではすべてこれを使う。</summary>
-        ExprAst ParseExpression() => ParseAdditive();
+        /// <param name="allowPercentAsModulo">false の場合、% は modulo 演算子として解釈せず、呼び出し側で単位として扱う。</param>
+        ExprAst ParseExpression(bool allowPercentAsModulo = true) => ParseAdditive(allowPercentAsModulo);
 
-        ExprAst ParseAdditive()
+        ExprAst ParseAdditive(bool allowPercentAsModulo)
         {
-            var left = ParseMultiplicative();
+            var left = ParseMultiplicative(allowPercentAsModulo);
             while (Current.Kind == TokenKind.Plus || Current.Kind == TokenKind.Minus)
             {
                 var opToken = Advance();
-                var right = ParseMultiplicative();
+                var right = ParseMultiplicative(allowPercentAsModulo);
                 var op = opToken.Kind == TokenKind.Plus ? BinaryOp.Add : BinaryOp.Sub;
                 left = new BinaryExpr(left, op, right, opToken.Location);
             }
             return left;
         }
 
-        ExprAst ParseMultiplicative()
+        ExprAst ParseMultiplicative(bool allowPercentAsModulo)
         {
             var left = ParseUnary();
             while (Current.Kind == TokenKind.Star
                    || Current.Kind == TokenKind.Slash
-                   || Current.Kind == TokenKind.Percent)
+                   || (allowPercentAsModulo && Current.Kind == TokenKind.Percent))
             {
                 var opToken = Advance();
                 var right = ParseUnary();
